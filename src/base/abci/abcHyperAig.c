@@ -167,8 +167,8 @@ Aig_Hyper_t * Aig_NtkBuildHypergraph( void * pNtkVoid )
             Vec_IntForEachEntry( vConnections, connId, j )
                 Vec_IntPush( vHyperEdge, connId );
 
-            // Add to hypergraph
-            Vec_VecPush( pHyper->vHyperedges, Vec_IntSize(vHyperEdge), vHyperEdge );
+            // Add to hypergraph - use simple push (appends to end)
+            Vec_PtrPush( (Vec_Ptr_t *)pHyper->vHyperedges, vHyperEdge );
             Vec_IntPush( pHyper->vEdgeWeights, 1 ); // Default weight
             pHyper->nHyperedges++;
             pHyper->nPins += Vec_IntSize(vHyperEdge);
@@ -249,20 +249,29 @@ void Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges,
     Vec_Int_t * vHyperedges, * vIndices, * vWeights;
     Vec_Int_t * vEdge;
     int i, j, iObj;
+    int nEdgesProcessed = 0;
 
     // Allocate output vectors
     vHyperedges = Vec_IntAlloc( p->nPins );
     vIndices = Vec_IntAlloc( p->nHyperedges + 1 );
     vWeights = Vec_IntDup( p->vEdgeWeights );
 
+    // Debug: Print hypergraph statistics
+    printf( "Export: nHyperedges=%d, nPins=%d, Vec_PtrSize=%d\n", 
+            p->nHyperedges, p->nPins, Vec_PtrSize((Vec_Ptr_t *)p->vHyperedges) );
+
     // Convert to CSR-like format for partitioners
     Vec_IntPush( vIndices, 0 );
     Aig_HyperForEachEdge( p, vEdge, i )
     {
+        nEdgesProcessed++;
         Vec_IntForEachEntry( vEdge, iObj, j )
             Vec_IntPush( vHyperedges, iObj );
         Vec_IntPush( vIndices, Vec_IntSize(vHyperedges) );
     }
+    
+    printf( "Export: Processed %d edges, generated %d pins\n", 
+            nEdgesProcessed, Vec_IntSize(vHyperedges) );
 
     // Return the arrays
     *pvHyperedges = vHyperedges;
@@ -327,6 +336,142 @@ int Aig_HyperTest( void * pNtkVoid )
     
     // Clean up
     Aig_HyperFree( pHyper );
+    return 1;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Applies hypergraph partition result to AIG network.]
+
+  Description [Based on LSOracle's partition_manager implementation.
+               Creates partition views and identifies interface signals.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPartition, int nPartitions )
+{
+    Abc_Ntk_t * pAig = (Abc_Ntk_t *)pNtk;
+    Abc_Obj_t * pObj, * pFanin, * pFanout;
+    int i, j, nodeIdx, partId, faninPart, fanoutPart;
+    Vec_Vec_t * vPartNodes;      // Nodes in each partition
+    Vec_Vec_t * vPartInputs;     // Input nodes for each partition  
+    Vec_Vec_t * vPartOutputs;    // Output nodes for each partition
+    Vec_Int_t * vPartSize;       // Size of each partition
+    
+    if ( !pAig || !pHyper || !vPartition || nPartitions <= 0 )
+        return 0;
+        
+    printf( "Applying partition result to AIG network...\n" );
+    printf( "Network: %d PIs, %d POs, %d nodes, %d partitions\n", 
+            Abc_NtkPiNum(pAig), Abc_NtkPoNum(pAig), Abc_NtkNodeNum(pAig), nPartitions );
+    
+    // Initialize partition data structures (LSOracle style)
+    vPartNodes = Vec_VecAlloc( nPartitions );
+    vPartInputs = Vec_VecAlloc( nPartitions );
+    vPartOutputs = Vec_VecAlloc( nPartitions );
+    vPartSize = Vec_IntAlloc( nPartitions );
+    
+    // Initialize partition sizes
+    for ( i = 0; i < nPartitions; i++ )
+        Vec_IntPush( vPartSize, 0 );
+    
+    // Step 1: Assign nodes to partitions (similar to _part_scope in LSOracle)
+    Abc_NtkForEachObj( pAig, pObj, i )
+    {
+        if ( i >= Vec_IntSize(vPartition) )
+            continue;
+            
+        partId = Vec_IntEntry( vPartition, i );
+        if ( partId >= 0 && partId < nPartitions )
+        {
+            Vec_VecPush( vPartNodes, partId, (void *)(size_t)i );
+            Vec_IntAddToEntry( vPartSize, partId, 1 );
+        }
+    }
+    
+    // Step 2: Identify partition interfaces (similar to LSOracle's interface detection)
+    Abc_NtkForEachNode( pAig, pObj, i )
+    {
+        nodeIdx = Abc_ObjId( pObj );
+        if ( nodeIdx >= Vec_IntSize(vPartition) )
+            continue;
+            
+        partId = Vec_IntEntry( vPartition, nodeIdx );
+        if ( partId < 0 || partId >= nPartitions )
+            continue;
+        
+        // Check fanins for cross-partition connections (LSOracle: lines 290-301)
+        Abc_ObjForEachFanin( pObj, pFanin, j )
+        {
+            int faninIdx = Abc_ObjId( pFanin );
+            if ( faninIdx >= Vec_IntSize(vPartition) )
+                continue;
+                
+            faninPart = Vec_IntEntry( vPartition, faninIdx );
+            
+            // Cross-partition fanin detected
+            if ( faninPart != partId && faninPart >= 0 && faninPart < nPartitions )
+            {
+                // Add fanin as input to current partition
+                Vec_VecPushUnique( vPartInputs, partId, (void *)(size_t)faninIdx );
+                // Add fanin as output from source partition  
+                Vec_VecPushUnique( vPartOutputs, faninPart, (void *)(size_t)faninIdx );
+            }
+        }
+    }
+    
+    // Step 3: Handle primary outputs (similar to LSOracle's PO handling)
+    Abc_NtkForEachPo( pAig, pObj, i )
+    {
+        pFanin = Abc_ObjFanin0( pObj );
+        if ( pFanin )
+        {
+            int faninIdx = Abc_ObjId( pFanin );
+            if ( faninIdx < Vec_IntSize(vPartition) )
+            {
+                faninPart = Vec_IntEntry( vPartition, faninIdx );
+                if ( faninPart >= 0 && faninPart < nPartitions )
+                {
+                    Vec_VecPushUnique( vPartOutputs, faninPart, (void *)(size_t)faninIdx );
+                }
+            }
+        }
+    }
+    
+    // Step 4: Print partition statistics (similar to LSOracle's output)
+    printf( "Partition analysis completed:\n" );
+    for ( i = 0; i < nPartitions; i++ )
+    {
+        int nNodes = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartNodes, i) );
+        int nInputs = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartInputs, i) );
+        int nOutputs = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartOutputs, i) );
+        
+        printf( "  Partition %d: %d nodes, %d inputs, %d outputs\n", 
+                i, nNodes, nInputs, nOutputs );
+    }
+    
+    // Calculate cut edges (connections between partitions)
+    int nCutEdges = 0;
+    for ( i = 0; i < nPartitions; i++ )
+    {
+        nCutEdges += Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartInputs, i) );
+    }
+    printf( "  Total interface signals: %d\n", nCutEdges );
+    
+    // TODO: Create partition views and apply optimizations (future work)
+    // This would involve creating separate AIG views for each partition
+    // and implementing the synchronization mechanism like LSOracle
+    
+    // Cleanup
+    Vec_VecFree( vPartNodes );
+    Vec_VecFree( vPartInputs );
+    Vec_VecFree( vPartOutputs );
+    Vec_IntFree( vPartSize );
+    
+    printf( "Partition result application completed.\n" );
     return 1;
 }
 
