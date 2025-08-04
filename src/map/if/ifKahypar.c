@@ -220,9 +220,20 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
     nHyperedges = pHyper->nHyperedges;
     nPins = Vec_IntSize( vHyperedges );
     
+    // Verify export consistency
+    if ( Vec_IntSize(vIndices) != nHyperedges + 1 )
+    {
+        printf( "Error: Indices vector size mismatch. Expected %d, got %d\n", 
+                nHyperedges + 1, Vec_IntSize(vIndices) );
+        Vec_IntFree( vHyperedges );
+        Vec_IntFree( vIndices );
+        Vec_IntFree( vWeights );
+        return pResult;
+    }
+    
     if ( pPars->fVerbose )
     {
-        printf( "Hypergraph exported: %d pins\n", nPins );
+        printf( "Hypergraph exported: %d pins, %d indices\n", nPins, Vec_IntSize(vIndices) );
     }
     
     // Create KaHyPar context
@@ -435,7 +446,18 @@ int Kahypar_TestPartition( void * pNtk, int nPartitions )
     if ( pResult && pResult->fSuccess )
     {
         Kahypar_PrintResult( pResult );
-        fSuccess = 1;
+        
+        // Apply partition result to AIG network
+        if ( Aig_ApplyPartitionResult( pNtk, pHyper, pResult->vPartition, pResult->nPartitions ) )
+        {
+            printf( "Partition result successfully applied to AIG network.\n" );
+            fSuccess = 1;
+        }
+        else
+        {
+            printf( "Warning: Failed to apply partition result to AIG network.\n" );
+            fSuccess = 1; // Still consider partitioning successful
+        }
     }
     
     // Cleanup

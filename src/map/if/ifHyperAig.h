@@ -54,7 +54,7 @@ struct Aig_Hyper_t_
 ////////////////////////////////////////////////////////////////////////
 
 #define Aig_HyperForEachEdge( p, vEdge, i )                                    \
-    for ( i = 0; (i < Vec_VecSize(p->vHyperedges)) && (((vEdge) = (Vec_Int_t *)Vec_VecEntry(p->vHyperedges, i)), 1); i++ )
+    for ( i = 0; (i < p->nHyperedges) && (((vEdge) = (Vec_Int_t *)Vec_PtrEntry((Vec_Ptr_t *)p->vHyperedges, i)), 1); i++ )
 
 ////////////////////////////////////////////////////////////////////////
 ///                    FUNCTION DECLARATIONS                         ///
@@ -69,6 +69,7 @@ extern void                Aig_HyperPrint( Aig_Hyper_t * p );
 extern void                Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges, 
                                                            Vec_Int_t ** pvIndices, Vec_Int_t ** pvWeights );
 extern int                 Aig_HyperTest( void * pNtk );
+extern int                 Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPartition, int nPartitions );
 
 ABC_NAMESPACE_HEADER_END
 
