@@ -76,6 +76,13 @@ ifndef ABC_USE_NO_CUDD
   $(info $(MSG_PREFIX)Compiling with CUDD)
 endif
 
+# compile KaHyPar hypergraph partitioner with ABC
+ifdef ABC_USE_KAHYPAR
+  CFLAGS += -DABC_USE_KAHYPAR=1 -Ilib/kahypar/include
+  LIBS += -Llib/kahypar/build/lib -lkahypar
+  $(info $(MSG_PREFIX)Compiling with KaHyPar)
+endif
+
 ABC_READLINE_INCLUDES ?=
 ABC_READLINE_LIBRARIES ?= -lreadline
 

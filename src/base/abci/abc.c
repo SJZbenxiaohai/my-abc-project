@@ -21436,7 +21436,7 @@ int Abc_CommandIf( Abc_Frame_t * pAbc, int argc, char ** argv )
     If_ManSetDefaultPars( pPars );
     pPars->pLutLib = (If_LibLut_t *)Abc_FrameReadLibLut();
     Extra_UtilGetoptReset();
-    while ( ( c = Extra_UtilGetopt( argc, argv, "KCFAGRNTXYUZDEWSJqaflepmrsdbgxyzuojiktncvh" ) ) != EOF )
+    while ( ( c = Extra_UtilGetopt( argc, argv, "KCFAGRNTXYUZDEWSJqaflepmrsdbgxyzuojiktncvhH" ) ) != EOF )
     {
         switch ( c )
         {
@@ -21709,6 +21709,9 @@ int Abc_CommandIf( Abc_Frame_t * pAbc, int argc, char ** argv )
             break;
         case 'z':
             pPars->fDeriveLuts ^= 1;
+            break;
+        case 'H':
+            pPars->fHyperGraph ^= 1;
             break;
         case 'h':
         default:

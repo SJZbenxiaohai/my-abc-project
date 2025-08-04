@@ -21,6 +21,7 @@
 #include "base/abc/abc.h"
 #include "base/main/main.h"
 #include "map/if/if.h"
+#include "map/if/ifHyperAig.h"
 #include "bool/kit/kit.h"
 #include "aig/aig/aig.h"
 #include "map/mio/mio.h"
@@ -147,6 +148,40 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
     pIfMan = Abc_NtkToIf( pNtk, pPars );    
     if ( pIfMan == NULL )
         return NULL;
+    
+    // perform hypergraph construction and partitioning if enabled
+    if ( pPars->fHyperGraph )
+    {
+#ifdef ABC_USE_KAHYPAR
+        extern int Kahypar_TestPartition( void * pNtk, int nPartitions );
+        if ( pPars->fVerbose )
+            Abc_Print( 1, "Hypergraph partitioning enabled for AIG network...\n" );
+        
+        // Perform hypergraph construction and KaHyPar partitioning
+        // Default to 2 partitions for now, can be made configurable later
+        if ( !Kahypar_TestPartition( pNtk, 2 ) )
+        {
+            if ( pPars->fVerbose )
+                Abc_Print( 1, "Warning: Hypergraph partitioning failed, proceeding with standard mapping.\n" );
+        }
+        else
+        {
+            if ( pPars->fVerbose )
+                Abc_Print( 1, "Hypergraph partitioning completed successfully.\n" );
+        }
+#else
+        extern int Aig_HyperTest( void * pNtk );
+        if ( pPars->fVerbose )
+            Abc_Print( 1, "Hypergraph construction enabled (KaHyPar not available)...\n" );
+        
+        // Build hypergraph from AIG network (test only, no partitioning)
+        if ( !Aig_HyperTest( pNtk ) )
+        {
+            if ( pPars->fVerbose )
+                Abc_Print( 1, "Warning: Hypergraph construction failed, proceeding with standard mapping.\n" );
+        }
+#endif
+    }
     if ( pPars->fPower )
         If_ManComputeSwitching( pIfMan );
 

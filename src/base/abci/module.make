@@ -74,4 +74,8 @@ SRC +=    src/base/abci/abc.c \
     src/base/abci/abcUnate.c \
     src/base/abci/abcUnreach.c \
     src/base/abci/abcVerify.c \
-    src/base/abci/abcXsim.c 
+    src/base/abci/abcXsim.c
+
+ifdef ABC_USE_KAHYPAR
+SRC += src/base/abci/abcHyperAig.c
+endif 

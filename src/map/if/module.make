@@ -24,4 +24,8 @@ SRC +=  src/map/if/ifCom.c \
     src/map/if/ifTime.c \
     src/map/if/ifTruth.c \
     src/map/if/ifTune.c \
-    src/map/if/ifUtil.c 
+    src/map/if/ifUtil.c
+
+ifdef ABC_USE_KAHYPAR
+SRC += src/map/if/ifKahypar.c
+endif 
