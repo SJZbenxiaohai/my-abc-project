@@ -296,6 +296,12 @@ struct If_Man_t_
     Mem_Fixed_t *      pMemEntries;      // memory manager for hash table entries
     // statistics 
 //    abctime                timeTruth;
+    
+    // partition-aware mapping
+    Vec_Int_t *        vPartition;      // node to partition mapping
+    int                nPartitions;      // number of partitions
+    Vec_Vec_t *        vPartInputs;     // inputs for each partition
+    Vec_Vec_t *        vPartOutputs;    // outputs for each partition
 };
 
 // priority cut
@@ -711,6 +717,14 @@ extern int             acd_evaluate( word * pTruth, unsigned nVars, int lutSize,
 extern int             acd_decompose( word * pTruth, unsigned nVars, int lutSize, unsigned *pdelay, unsigned char *decomposition );
 extern int             acd2_evaluate( word * pTruth, unsigned nVars, int lutSize, unsigned *pdelay, unsigned *cost, int try_no_late_arrival );
 extern int             acd2_decompose( word * pTruth, unsigned nVars, int lutSize, unsigned *pdelay, unsigned char *decomposition );
+/*=== ifPartition.c =========================================================*/
+extern void            If_ManSetPartitionInfo( If_Man_t * pIfMan, void * pNtk, Vec_Int_t * vPartition, int nPartitions );
+extern void            If_ManCleanPartitionInfo( If_Man_t * p );
+extern int             If_ObjIsPartitionInput( If_Man_t * p, int nodeId, int partId );
+extern int             If_ObjPartition( If_Man_t * p, If_Obj_t * pObj );
+extern int             If_CutCheckPartition( If_Man_t * p, If_Cut_t * pCut, int targetPartition );
+extern void            If_ObjLimitCutsToTrivial( If_Man_t * p, If_Obj_t * pObj );
+extern void            If_ObjPerformMappingAndPartitionAware( If_Man_t * p, If_Obj_t * pObj, int Mode, int fPreprocess, int fFirst );
 
 ABC_NAMESPACE_HEADER_END
 

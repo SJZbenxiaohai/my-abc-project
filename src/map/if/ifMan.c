@@ -295,6 +295,9 @@ void If_ManStop( If_Man_t * p )
     ABC_FREE( p->pMemAnd );
     ABC_FREE( p->puTemp[0] );
     ABC_FREE( p->puTempW );
+    // cleanup partition info
+    extern void If_ManCleanPartitionInfo( If_Man_t * p );
+    If_ManCleanPartitionInfo( p );
     // free pars memory
     ABC_FREE( p->pPars->pTimesArr );
     ABC_FREE( p->pPars->pTimesReq );

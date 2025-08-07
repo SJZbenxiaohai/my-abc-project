@@ -154,12 +154,17 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
     {
 #ifdef ABC_USE_KAHYPAR
         extern int Kahypar_TestPartition( void * pNtk, int nPartitions );
+        extern void If_ManSetPartitionInfo( If_Man_t * pIfMan, void * pNtk, Vec_Int_t * vPartition, int nPartitions );
+        
         if ( pPars->fVerbose )
             Abc_Print( 1, "Hypergraph partitioning enabled for AIG network...\n" );
         
+        // Store the partition information for later retrieval
+        Vec_Int_t * vPartition = NULL;
+        int nPartitions = 2; // Default to 2 partitions
+        
         // Perform hypergraph construction and KaHyPar partitioning
-        // Default to 2 partitions for now, can be made configurable later
-        if ( !Kahypar_TestPartition( pNtk, 2 ) )
+        if ( !Kahypar_GetPartition( pNtk, nPartitions, &vPartition ) )
         {
             if ( pPars->fVerbose )
                 Abc_Print( 1, "Warning: Hypergraph partitioning failed, proceeding with standard mapping.\n" );
@@ -168,6 +173,15 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
         {
             if ( pPars->fVerbose )
                 Abc_Print( 1, "Hypergraph partitioning completed successfully.\n" );
+            
+            // Pass partition info to IF manager
+            If_ManSetPartitionInfo( pIfMan, pNtk, vPartition, nPartitions );
+            
+            // Disable expand/reduce optimization for partition-aware mapping
+            // as it may violate partition constraints
+            pIfMan->pPars->fExpRed = 0;
+            if ( pPars->fVerbose )
+                Abc_Print( 1, "Note: Expand/reduce optimization disabled for partition-aware mapping.\n" );
         }
 #else
         extern int Aig_HyperTest( void * pNtk );

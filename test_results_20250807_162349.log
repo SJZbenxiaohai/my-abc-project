@@ -1,0 +1,1043 @@
+=====================================
+FPGA Mapping Test Results
+=====================================
+Test Date: 2025年 08月 07日 星期四 16:23:49 CST
+LUT Size: 6
+
+
+从日志中提取的数据：
+
+  | 文件             | 标准映射 nodes | 分区映射 nodes | 差异
+          |
+  |----------------|------------|------------|----------------|
+  | adder.aig      | 254        | 202        | -52 (-20.5%)   |
+  | bar.aig        | 512        | 512        | 0              |
+  | div.aig        | 22030      | 22748      | +718 (+3.3%)   |
+  | hyp.aig        | 44508      | 47721      | +3213 (+7.2%)  |
+  | log2.aig       | 7976       | 7829       | -147 (-1.8%)   |
+  | max.aig        | 842        | 741        | -101 (-12.0%)  |
+  | multiplier.aig | 5929       | 5818       | -111 (-1.9%)   |
+  | sin.aig        | 1464       | 1430       | -34 (-2.3%)    |
+  | sqrt.aig       | 5724       | 7887       | +2163 (+37.8%) |
+  | square.aig     | 3997       | 3946       | -51 (-1.3%)    |
+  | arbiter.aig    | 2722       | 2614       | -108 (-4.0%)   |
+  | cavlc.aig      | 122        | 116        | -6 (-4.9%)     |
+  | ctrl.aig       | 29         | 29         | 0              |
+  | dec.aig        | 287        | 287        | 0              |
+  | i2c.aig        | 365        | 355        | -10 (-2.7%)    |
+  | int2float.aig  | 49         | 47         | -2 (-4.1%)     |
+  | mem_ctrl.aig   | 12104      | 12043      | -61 (-0.5%)    |
+  | priority.aig   | 219        | 262        | +43 (+19.6%)   |
+
+  分析结果：
+
+  1. 有改进的文件（LUT数量减少）- 12个文件：
+    - adder.aig: -52 LUTs (-20.5%)
+    - log2.aig: -147 LUTs (-1.8%)
+    - max.aig: -101 LUTs (-12.0%)
+    - multiplier.aig: -111 LUTs (-1.9%)
+    - sin.aig: -34 LUTs (-2.3%)
+    - square.aig: -51 LUTs (-1.3%)
+    - arbiter.aig: -108 LUTs (-4.0%)
+    - cavlc.aig: -6 LUTs (-4.9%)
+    - i2c.aig: -10 LUTs (-2.7%)
+    - int2float.aig: -2 LUTs (-4.1%)
+    - mem_ctrl.aig: -61 LUTs (-0.5%)
+  2. 没有变化的文件 - 3个：
+    - bar.aig, ctrl.aig, dec.aig
+  3. 变差的文件（LUT数量增加）- 3个：
+    - div.aig: +718 LUTs (+3.3%)
+    - hyp.aig: +3213 LUTs (+7.2%)
+    - sqrt.aig: +2163 LUTs (+37.8%)
+    - priority.aig: +43 LUTs (+19.6%)
+
+  总结：
+  - 大多数文件（12/18）在LUT使用量上有改进
+  - 特别是adder.aig和max.aig有显著改进（分别减少20.5%和12.0%）
+  - 但是延迟（levels）普遍增加了，这是分区约束带来的代价
+  - 一些复杂的算术电路（div, hyp, sqrt）反而变差了
+
+  这说明分区感知映射在面积优化（LUT数量）方面对很多电路是有效的，
+  但会牺牲延迟性能。这是一个典型的面积-延迟权衡。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder:[0m i/o =  256/  129  lat =    0  nd =   254  edge =   1036  aig  =  1666  lev = 51
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 1
+KaHyPar partitioning result:
+  Vertices: 1406
+  Partitions: 2
+  Cut hyperedges: 1
+  Partition sizes: 700 706 
+Applying partition result to AIG network...
+Network: 256 PIs, 129 POs, 1020 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 700 nodes, 0 inputs, 65 outputs
+  Partition 1: 706 nodes, 1 inputs, 65 outputs
+  Total interface signals: 1
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 0 inputs, 1 outputs
+  Partition 1: 1 inputs, 0 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder:[0m i/o =  256/  129  lat =    0  nd =   202  edge =    820  aig  =  1488  lev = 74
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=51
+  Partition: nodes=, levels=74
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar:[0m i/o =  135/  128  lat =    0  nd =   512  edge =   2688  aig  =  4608  lev = 4
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 21
+KaHyPar partitioning result:
+  Vertices: 3600
+  Partitions: 2
+  Cut hyperedges: 21
+  Partition sizes: 183 3417 
+Applying partition result to AIG network...
+Network: 135 PIs, 128 POs, 3336 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 183 nodes, 16 inputs, 21 outputs
+  Partition 1: 3417 nodes, 5 inputs, 128 outputs
+  Total interface signals: 21
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 16 inputs, 5 outputs
+  Partition 1: 5 inputs, 16 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar:[0m i/o =  135/  128  lat =    0  nd =   512  edge =   2688  aig  =  4608  lev = 4
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=4
+  Partition: nodes=, levels=4
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div:[0m i/o =  128/  128  lat =    0  nd = 22030  edge =  77705  aig  = 86045  lev = 864
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 126
+KaHyPar partitioning result:
+  Vertices: 57504
+  Partitions: 2
+  Cut hyperedges: 126
+  Partition sizes: 54558 2946 
+Applying partition result to AIG network...
+Network: 128 PIs, 128 POs, 57247 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 54558 nodes, 51 inputs, 176 outputs
+  Partition 1: 2946 nodes, 75 inputs, 78 outputs
+  Total interface signals: 126
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 51 inputs, 75 outputs
+  Partition 1: 75 inputs, 51 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div:[0m i/o =  128/  128  lat =    0  nd = 22748  edge =  70895  aig  = 76769  lev = 2045
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=22030, levels=864
+  Partition: nodes=22748, levels=2045
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp:[0m i/o =  256/  128  lat =    0  nd = 44508  edge = 198047  aig  =348081  lev = 4194
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 255
+KaHyPar partitioning result:
+  Vertices: 214720
+  Partitions: 2
+  Cut hyperedges: 255
+  Partition sizes: 141074 73646 
+Applying partition result to AIG network...
+Network: 256 PIs, 128 POs, 214335 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 141074 nodes, 0 inputs, 255 outputs
+  Partition 1: 73646 nodes, 255 inputs, 128 outputs
+  Total interface signals: 255
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 0 inputs, 255 outputs
+  Partition 1: 255 inputs, 0 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp:[0m i/o =  256/  128  lat =    0  nd = 47721  edge = 190540  aig  =328198  lev = 8448
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=44508, levels=4194
+  Partition: nodes=47721, levels=8448
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2:[0m i/o =   32/   32  lat =    0  nd =  7976  edge =  36325  aig  = 52026  lev = 77
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 112
+KaHyPar partitioning result:
+  Vertices: 32125
+  Partitions: 2
+  Cut hyperedges: 112
+  Partition sizes: 1874 30251 
+Applying partition result to AIG network...
+Network: 32 PIs, 32 POs, 32060 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 1874 nodes, 76 inputs, 36 outputs
+  Partition 1: 30251 nodes, 36 inputs, 108 outputs
+  Total interface signals: 112
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 76 inputs, 36 outputs
+  Partition 1: 36 inputs, 76 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2:[0m i/o =   32/   32  lat =    0  nd =  7829  edge =  39014  aig  = 64611  lev = 137
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=77
+  Partition: nodes=, levels=137
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max:[0m i/o =  512/  130  lat =    0  nd =   842  edge =   3350  aig  =  3365  lev = 56
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 9
+KaHyPar partitioning result:
+  Vertices: 3508
+  Partitions: 2
+  Cut hyperedges: 9
+  Partition sizes: 2835 673 
+Applying partition result to AIG network...
+Network: 512 PIs, 130 POs, 2865 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 2835 nodes, 3 inputs, 109 outputs
+  Partition 1: 673 nodes, 6 inputs, 29 outputs
+  Total interface signals: 9
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 3 inputs, 6 outputs
+  Partition 1: 6 inputs, 3 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max:[0m i/o =  512/  130  lat =    0  nd =   741  edge =   3424  aig  =  3895  lev = 115
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=56
+  Partition: nodes=, levels=115
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier:[0m i/o =  128/  128  lat =    0  nd =  5929  edge =  27739  aig  = 45570  lev = 53
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 98
+KaHyPar partitioning result:
+  Vertices: 27319
+  Partitions: 2
+  Cut hyperedges: 98
+  Partition sizes: 25916 1403 
+Applying partition result to AIG network...
+Network: 128 PIs, 128 POs, 27062 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 25916 nodes, 36 inputs, 173 outputs
+  Partition 1: 1403 nodes, 62 inputs, 53 outputs
+  Total interface signals: 98
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 36 inputs, 62 outputs
+  Partition 1: 62 inputs, 36 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier:[0m i/o =  128/  128  lat =    0  nd =  5818  edge =  27528  aig  = 55070  lev = 96
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=53
+  Partition: nodes=, levels=96
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/div.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin:[0m i/o =   24/   25  lat =    0  nd =  1464  edge =   6497  aig  =  9943  lev = 42
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 44
+KaHyPar partitioning result:
+  Vertices: 5466
+  Partitions: 2
+  Cut hyperedges: 44
+  Partition sizes: 5191 275 
+Applying partition result to AIG network...
+Network: 24 PIs, 25 POs, 5416 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 5191 nodes, 27 inputs, 36 outputs
+  Partition 1: 275 nodes, 17 inputs, 33 outputs
+  Total interface signals: 44
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 27 inputs, 17 outputs
+  Partition 1: 17 inputs, 27 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin:[0m i/o =   24/   25  lat =    0  nd =  1430  edge =   6078  aig  =  8255  lev = 70
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=42
+  Partition: nodes=, levels=70
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/hyp.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt:[0m i/o =  128/   64  lat =    0  nd =  5724  edge =  26936  aig  = 38251  lev = 1033
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 38
+KaHyPar partitioning result:
+  Vertices: 24811
+  Partitions: 2
+  Cut hyperedges: 38
+  Partition sizes: 1503 23308 
+Applying partition result to AIG network...
+Network: 128 PIs, 64 POs, 24618 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 1503 nodes, 2 inputs, 36 outputs
+  Partition 1: 23308 nodes, 36 inputs, 51 outputs
+  Total interface signals: 38
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 2 inputs, 36 outputs
+  Partition 1: 36 inputs, 2 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt:[0m i/o =  128/   64  lat =    0  nd =  7887  edge =  25948  aig  = 27796  lev = 3737
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=1033
+  Partition: nodes=, levels=3737
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/log2.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square:[0m i/o =   64/  128  lat =    0  nd =  3997  edge =  16525  aig  = 35208  lev = 50
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 111
+KaHyPar partitioning result:
+  Vertices: 18677
+  Partitions: 2
+  Cut hyperedges: 111
+  Partition sizes: 17135 1542 
+Applying partition result to AIG network...
+Network: 64 PIs, 128 POs, 18484 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 17135 nodes, 97 inputs, 116 outputs
+  Partition 1: 1542 nodes, 14 inputs, 123 outputs
+  Total interface signals: 111
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 97 inputs, 14 outputs
+  Partition 1: 14 inputs, 97 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square:[0m i/o =   64/  128  lat =    0  nd =  3946  edge =  16431  aig  = 35079  lev = 108
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=50
+  Partition: nodes=, levels=108
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter:[0m i/o =  256/  129  lat =    0  nd =  2722  edge =  15137  aig  = 12415  lev = 18
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 75
+KaHyPar partitioning result:
+  Vertices: 12225
+  Partitions: 2
+  Cut hyperedges: 75
+  Partition sizes: 11597 628 
+Applying partition result to AIG network...
+Network: 256 PIs, 129 POs, 11839 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 11597 nodes, 23 inputs, 179 outputs
+  Partition 1: 628 nodes, 52 inputs, 25 outputs
+  Total interface signals: 75
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 23 inputs, 52 outputs
+  Partition 1: 52 inputs, 23 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter:[0m i/o =  256/  129  lat =    0  nd =  2614  edge =  15089  aig  = 12475  lev = 20
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=18
+  Partition: nodes=, levels=20
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/multiplier.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc:[0m i/o =   10/   11  lat =    0  nd =   122  edge =    628  aig  =   969  lev = 4
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 16
+KaHyPar partitioning result:
+  Vertices: 715
+  Partitions: 2
+  Cut hyperedges: 16
+  Partition sizes: 679 36 
+Applying partition result to AIG network...
+Network: 10 PIs, 11 POs, 693 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 679 nodes, 11 inputs, 13 outputs
+  Partition 1: 36 nodes, 5 inputs, 14 outputs
+  Total interface signals: 16
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 11 inputs, 5 outputs
+  Partition 1: 5 inputs, 11 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc:[0m i/o =   10/   11  lat =    0  nd =   116  edge =    632  aig  =   973  lev = 8
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=4
+  Partition: nodes=, levels=8
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sin.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl:[0m i/o =    7/   26  lat =    0  nd =    29  edge =    136  aig  =   316  lev = 2
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 3
+KaHyPar partitioning result:
+  Vertices: 208
+  Partitions: 2
+  Cut hyperedges: 3
+  Partition sizes: 195 13 
+Applying partition result to AIG network...
+Network: 7 PIs, 26 POs, 174 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 195 nodes, 2 inputs, 24 outputs
+  Partition 1: 13 nodes, 1 inputs, 5 outputs
+  Total interface signals: 3
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 2 inputs, 1 outputs
+  Partition 1: 1 inputs, 2 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl:[0m i/o =    7/   26  lat =    0  nd =    29  edge =    136  aig  =   316  lev = 2
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=2
+  Partition: nodes=, levels=2
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/sqrt.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec:[0m i/o =    8/  256  lat =    0  nd =   287  edge =    684  aig  =   397  lev = 2
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 8
+KaHyPar partitioning result:
+  Vertices: 569
+  Partitions: 2
+  Cut hyperedges: 8
+  Partition sizes: 536 33 
+Applying partition result to AIG network...
+Network: 8 PIs, 256 POs, 304 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 536 nodes, 0 inputs, 248 outputs
+  Partition 1: 33 nodes, 8 inputs, 16 outputs
+  Total interface signals: 8
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 0 inputs, 8 outputs
+  Partition 1: 8 inputs, 0 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec:[0m i/o =    8/  256  lat =    0  nd =   287  edge =   1404  aig  =  1117  lev = 2
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=2
+  Partition: nodes=, levels=2
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/square.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c:[0m i/o =  147/  142  lat =    0  nd =   365  edge =   1668  aig  =  1565  lev = 4
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 9
+KaHyPar partitioning result:
+  Vertices: 1632
+  Partitions: 2
+  Cut hyperedges: 9
+  Partition sizes: 1549 83 
+Applying partition result to AIG network...
+Network: 147 PIs, 142 POs, 1342 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 1549 nodes, 8 inputs, 120 outputs
+  Partition 1: 83 nodes, 1 inputs, 31 outputs
+  Total interface signals: 9
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 8 inputs, 1 outputs
+  Partition 1: 1 inputs, 8 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c:[0m i/o =  147/  142  lat =    0  nd =   355  edge =   1753  aig  =  1674  lev = 5
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=4
+  Partition: nodes=, levels=5
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float:[0m i/o =   11/    7  lat =    0  nd =    49  edge =    256  aig  =   291  lev = 3
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 7
+KaHyPar partitioning result:
+  Vertices: 279
+  Partitions: 2
+  Cut hyperedges: 7
+  Partition sizes: 16 263 
+Applying partition result to AIG network...
+Network: 11 PIs, 7 POs, 260 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 16 nodes, 1 inputs, 6 outputs
+  Partition 1: 263 nodes, 6 inputs, 8 outputs
+  Total interface signals: 7
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 1 inputs, 6 outputs
+  Partition 1: 6 inputs, 1 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float:[0m i/o =   11/    7  lat =    0  nd =    47  edge =    252  aig  =   292  lev = 4
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=3
+  Partition: nodes=, levels=4
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl:[0m i/o = 1204/ 1231  lat =    0  nd = 12104  edge =  54519  aig  = 61714  lev = 25
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 70
+KaHyPar partitioning result:
+  Vertices: 49272
+  Partitions: 2
+  Cut hyperedges: 70
+  Partition sizes: 46791 2481 
+Applying partition result to AIG network...
+Network: 1204 PIs, 1231 POs, 46836 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 46791 nodes, 47 inputs, 942 outputs
+  Partition 1: 2481 nodes, 23 inputs, 355 outputs
+  Total interface signals: 70
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 47 inputs, 23 outputs
+  Partition 1: 23 inputs, 47 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl:[0m i/o = 1204/ 1231  lat =    0  nd = 12043  edge =  60621  aig  = 70471  lev = 45
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=12104, levels=25
+  Partition: nodes=12043, levels=45
+  ** PARTITION IS BETTER **
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority:[0m i/o =  128/    8  lat =    0  nd =   219  edge =   1074  aig  =  1454  lev = 31
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+KaHyPar partitioning completed: objective = 7
+KaHyPar partitioning result:
+  Vertices: 1115
+  Partitions: 2
+  Cut hyperedges: 7
+  Partition sizes: 70 1045 
+Applying partition result to AIG network...
+Network: 128 PIs, 8 POs, 978 nodes, 2 partitions
+Partition analysis completed:
+  Partition 0: 70 nodes, 0 inputs, 7 outputs
+  Partition 1: 1045 nodes, 7 inputs, 8 outputs
+  Total interface signals: 7
+Partition result application completed.
+Partition result successfully applied to AIG network.
+Setting partition information in IF manager...
+Partition boundaries identified:
+  Partition 0: 0 inputs, 7 outputs
+  Partition 1: 7 inputs, 0 outputs
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority:[0m i/o =  128/    8  lat =    0  nd =   262  edge =   1387  aig  =  2061  lev = 34
+abc 03> ***EOF***
+
+Results:
+  Standard:  nodes=, levels=31
+  Partition: nodes=, levels=34
+
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/dec.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router:[0m i/o =   60/   30  lat =    0  nd =    91  edge =    306  aig  =   394  lev = 11
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+Timings: 
+Partition time                     = 0.0245025 s 
+  + Preprocessing                  = 0.000627309 s 
+    | min hash sparsifier          = 0 s 
+    | community detection          = 0.000627309 s 
+  + Coarsening                     = 2.556e-05 s 
+  + Initial Partitioning           = 0.0236271 s 
+    + Coarsening                   = 1.3254e-05 s 
+          | bisection 1 ( 0 , 1 )        = 1.3254e-05 s 
+    + Initial Partitioning         = 0.0227552 s 
+          | bisection 1 ( 0 , 1 )        = 0.0227552 s 
+    + Local Search                 = 2.1699e-05 s 
+          | bisection 1 ( 0 , 1 )        = 2.1699e-05 s 
+  + Local Search                   = 5.5784e-05 s 
+           | flow refinement       = 0  s 
+  + Postprocessing                 = 0 s 
+    | undo sparsifier              = 0 s 
+ 
+ 
+abc: ./src/misc/vec/vecVec.h:273: Vec_VecEntry: Assertion `i >= 0 && i < p->nSize' failed.
+  ✗ Failed: Partition mapping failed
+-------------------------------------
+File: /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/voter.aig
+-------------------------------------
+
+Standard mapping (if -K 6):
+UC Berkeley, ABC 1.01 (compiled Aug  6 2025 22:19:08)
+================== Command history ==================
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/i2c.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/int2float.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/mem_ctrl.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/priority.aig; if -K 6 -H; ps
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router.aig; if -K 6; ps
+source -s abc.rc
+read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/router.aig; if -K 6 -H; ps
+=====================================================
+abc 01> read /home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/voter.aig; if -K 6; ps
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/voter:[0m i/o = 1001/    1  lat =    0  nd =  2826  edge =  13622  aig  = 38299  lev = 17
+abc 03> ***EOF***
+
+Partition-aware mapping (if -K 6 -H):
+Timings: 
+Partition time                     = 0.107418 s 
+  + Preprocessing                  = 0.0412124 s 
+    | min hash sparsifier          = 0 s 
+    | community detection          = 0.0412124 s 
+  + Coarsening                     = 0.00789571 s 
+  + Initial Partitioning           = 0.0421523 s 
+    + Coarsening                   = 8.4e-05 s 
+          | bisection 1 ( 0 , 1 )        = 8.4e-05 s 
+    + Initial Partitioning         = 0.0403997 s 
+          | bisection 1 ( 0 , 1 )        = 0.0403997 s 
+    + Local Search                 = 6.2162e-05 s 
+          | bisection 1 ( 0 , 1 )        = 6.2162e-05 s 
+  + Local Search                   = 0.0120583 s 
+           | flow refinement       = 0.00437732  s 
+  + Postprocessing                 = 0 s 
+    | undo sparsifier              = 0 s 
+ 
+ 
+abc: ./src/misc/vec/vecVec.h:273: Vec_VecEntry: Assertion `i >= 0 && i < p->nSize' failed.
+  ✗ Failed: Partition mapping failed
+=====================================
+SUMMARY
+=====================================
+Total files tested: 18
+Successful tests: 18
+Files where partition is better: 1
+
+Files with improvements:
+  mem_ctrl.aig:
+    Nodes reduced by 61 (0%)
