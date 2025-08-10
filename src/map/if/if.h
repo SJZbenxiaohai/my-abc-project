@@ -150,6 +150,7 @@ struct If_Par_t_
     int                fUserLutDec;   // perform Boolean decomposition during mapping
     int                fUserLut2D;    // perform Boolean decomposition during mapping
     int                fHyperGraph;   // use hypergraph partitioning before mapping
+    int                fTimingAware;  // use timing-aware hypergraph partitioning
     int                fVerbose;      // the verbosity flag
     int                fVerboseTrace; // the verbosity flag
     char *             pLutStruct;    // LUT structure

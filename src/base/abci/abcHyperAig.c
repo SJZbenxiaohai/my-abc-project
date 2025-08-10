@@ -244,9 +244,10 @@ void Aig_HyperPrint( Aig_Hyper_t * p )
 
 ***********************************************************************/
 void Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges, 
-                                     Vec_Int_t ** pvIndices, Vec_Int_t ** pvWeights )
+                                     Vec_Int_t ** pvIndices, Vec_Int_t ** pvEdgeWeights,
+                                     Vec_Int_t ** pvVertexWeights )
 {
-    Vec_Int_t * vHyperedges, * vIndices, * vWeights;
+    Vec_Int_t * vHyperedges, * vIndices, * vEdgeWeights, * vVertexWeights;
     Vec_Int_t * vEdge;
     int i, j, iObj;
     int nEdgesProcessed = 0;
@@ -254,7 +255,8 @@ void Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges,
     // Allocate output vectors
     vHyperedges = Vec_IntAlloc( p->nPins );
     vIndices = Vec_IntAlloc( p->nHyperedges + 1 );
-    vWeights = Vec_IntDup( p->vEdgeWeights );
+    vEdgeWeights = Vec_IntDup( p->vEdgeWeights );
+    vVertexWeights = Vec_IntDup( p->vVertexWeights );
 
     // Debug: Print hypergraph statistics
     printf( "Export: nHyperedges=%d, nPins=%d, Vec_PtrSize=%d\n", 
@@ -276,7 +278,11 @@ void Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges,
     // Return the arrays
     *pvHyperedges = vHyperedges;
     *pvIndices = vIndices;
-    *pvWeights = vWeights;
+    *pvEdgeWeights = vEdgeWeights;
+    if ( pvVertexWeights )
+        *pvVertexWeights = vVertexWeights;
+    else
+        Vec_IntFree( vVertexWeights );
 }
 
 /**Function*************************************************************

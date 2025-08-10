@@ -77,5 +77,6 @@ SRC +=    src/base/abci/abc.c \
     src/base/abci/abcXsim.c
 
 ifdef ABC_USE_KAHYPAR
-SRC += src/base/abci/abcHyperAig.c
+SRC += src/base/abci/abcHyperAig.c \
+       src/base/abci/abcHyperTiming.c
 endif 

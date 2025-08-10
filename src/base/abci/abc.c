@@ -21711,7 +21711,33 @@ int Abc_CommandIf( Abc_Frame_t * pAbc, int argc, char ** argv )
             pPars->fDeriveLuts ^= 1;
             break;
         case 'H':
-            pPars->fHyperGraph ^= 1;
+            // Check if there's an optional argument
+            if ( globalUtilOptind < argc && argv[globalUtilOptind][0] != '-' )
+            {
+                int value = atoi(argv[globalUtilOptind]);
+                if ( value == 0 )
+                {
+                    pPars->fHyperGraph = 1;
+                    pPars->fTimingAware = 0;
+                }
+                else if ( value == 1 )
+                {
+                    pPars->fHyperGraph = 1;
+                    pPars->fTimingAware = 1;
+                }
+                else
+                {
+                    Abc_Print( -1, "Invalid value for -H option. Use 0 for normal partitioning, 1 for timing-aware.\n" );
+                    goto usage;
+                }
+                globalUtilOptind++;
+            }
+            else
+            {
+                // Default: enable hypergraph with normal partitioning
+                pPars->fHyperGraph = 1;
+                pPars->fTimingAware = 0;
+            }
             break;
         case 'h':
         default:

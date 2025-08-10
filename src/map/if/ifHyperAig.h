@@ -67,9 +67,14 @@ extern Aig_Hyper_t *       Aig_NtkBuildHypergraph( void * pNtk );
 extern void                Aig_HyperPrintStats( Aig_Hyper_t * p );
 extern void                Aig_HyperPrint( Aig_Hyper_t * p );
 extern void                Aig_HyperExportForPartitioning( Aig_Hyper_t * p, Vec_Int_t ** pvHyperedges, 
-                                                           Vec_Int_t ** pvIndices, Vec_Int_t ** pvWeights );
+                                                           Vec_Int_t ** pvIndices, Vec_Int_t ** pvEdgeWeights,
+                                                           Vec_Int_t ** pvVertexWeights );
 extern int                 Aig_HyperTest( void * pNtk );
 extern int                 Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPartition, int nPartitions );
+
+// Timing-aware hypergraph construction
+extern Aig_Hyper_t *       Aig_NtkBuildTimingAwareHypergraph( void * pNtkVoid );
+extern int                 Aig_TestTimingAwareHypergraph( void * pNtk );
 
 ABC_NAMESPACE_HEADER_END
 

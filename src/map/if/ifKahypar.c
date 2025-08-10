@@ -216,7 +216,8 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
     }
     
     // Export hypergraph for KaHyPar
-    Aig_HyperExportForPartitioning( pHyper, &vHyperedges, &vIndices, &vWeights );
+    Vec_Int_t * vVertexWeights = NULL;
+    Aig_HyperExportForPartitioning( pHyper, &vHyperedges, &vIndices, &vWeights, &vVertexWeights );
     nHyperedges = pHyper->nHyperedges;
     nPins = Vec_IntSize( vHyperedges );
     
@@ -228,6 +229,8 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
         Vec_IntFree( vHyperedges );
         Vec_IntFree( vIndices );
         Vec_IntFree( vWeights );
+        if ( vVertexWeights )
+            Vec_IntFree( vVertexWeights );
         return pResult;
     }
     
@@ -244,6 +247,8 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
         Vec_IntFree( vHyperedges );
         Vec_IntFree( vIndices );
         Vec_IntFree( vWeights );
+        if ( vVertexWeights )
+            Vec_IntFree( vVertexWeights );
         return pResult;
     }
     
@@ -264,6 +269,8 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
             Vec_IntFree( vHyperedges );
             Vec_IntFree( vIndices );
             Vec_IntFree( vWeights );
+            if ( vVertexWeights )
+                Vec_IntFree( vVertexWeights );
             return pResult;
         }
         kahypar_configure_context_from_file( pContext, pTempConfigFile );
@@ -285,20 +292,40 @@ Kahypar_Result_t * Kahypar_PartitionHypergraph( Aig_Hyper_t * pHyper, Kahypar_Pa
     for ( i = 0; i < nPins; i++ )
         pHyperedges[i] = Vec_IntEntry( vHyperedges, i );
     
-    // Set edge weights (uniform weights)
+    // Set edge weights
     if ( pPars->fUseEdgeWeights )
     {
         pEdgeWeights = ABC_ALLOC( kahypar_hyperedge_weight_t, nHyperedges );
-        for ( i = 0; i < nHyperedges; i++ )
-            pEdgeWeights[i] = 1;
+        // Use actual edge weights from hypergraph if available
+        if ( pHyper->vEdgeWeights && Vec_IntSize(pHyper->vEdgeWeights) == nHyperedges )
+        {
+            for ( i = 0; i < nHyperedges; i++ )
+                pEdgeWeights[i] = Vec_IntEntry( pHyper->vEdgeWeights, i );
+        }
+        else
+        {
+            // Default to uniform weights
+            for ( i = 0; i < nHyperedges; i++ )
+                pEdgeWeights[i] = 1;
+        }
     }
     
-    // Set node weights (uniform weights)
+    // Set node weights
     if ( pPars->fUseNodeWeights )
     {
         pNodeWeights = ABC_ALLOC( kahypar_hypernode_weight_t, nVertices );
-        for ( i = 0; i < nVertices; i++ )
-            pNodeWeights[i] = 1;
+        // Use actual vertex weights from exported data if available
+        if ( vVertexWeights && Vec_IntSize(vVertexWeights) >= nVertices )
+        {
+            for ( i = 0; i < nVertices; i++ )
+                pNodeWeights[i] = Vec_IntEntry( vVertexWeights, i );
+        }
+        else
+        {
+            // Default to uniform weights
+            for ( i = 0; i < nVertices; i++ )
+                pNodeWeights[i] = 1;
+        }
     }
     
     // Create KaHyPar hypergraph
@@ -362,6 +389,8 @@ cleanup:
     Vec_IntFree( vHyperedges );
     Vec_IntFree( vIndices );
     Vec_IntFree( vWeights );
+    if ( vVertexWeights )
+        Vec_IntFree( vVertexWeights );
     
     return pResult;
 }
@@ -471,6 +500,71 @@ int Kahypar_TestPartition( void * pNtk, int nPartitions )
 
 /**Function*************************************************************
 
+  Synopsis    [Tests timing-aware KaHyPar partitioning on AIG network.]
+
+  Description []
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Kahypar_TestTimingAwarePartition( void * pNtk, int nPartitions )
+{
+    Aig_Hyper_t * pHyper;
+    Kahypar_Par_t * pPars;
+    Kahypar_Result_t * pResult;
+    int fSuccess = 0;
+    
+    // Declare the timing-aware function
+    extern Aig_Hyper_t * Aig_NtkBuildTimingAwareHypergraph( void * pNtkVoid );
+    
+    // Build timing-aware hypergraph
+    pHyper = Aig_NtkBuildTimingAwareHypergraph( pNtk );
+    if ( pHyper == NULL )
+    {
+        printf( "Kahypar_TestTimingAwarePartition(): Failed to build timing-aware hypergraph.\n" );
+        return 0;
+    }
+    
+    // Setup partitioning parameters
+    pPars = Kahypar_ParAlloc();
+    pPars->nPartitions = nPartitions;
+    pPars->fVerbose = 1;
+    pPars->fUseNodeWeights = 1;  // Use node weights for timing
+    pPars->fUseEdgeWeights = 1;  // Use edge weights for timing
+    
+    // Perform partitioning
+    pResult = Kahypar_PartitionHypergraph( pHyper, pPars );
+    
+    if ( pResult && pResult->fSuccess )
+    {
+        Kahypar_PrintResult( pResult );
+        
+        // Apply partition result to AIG network
+        if ( Aig_ApplyPartitionResult( pNtk, pHyper, pResult->vPartition, pResult->nPartitions ) )
+        {
+            printf( "Timing-aware partition result successfully applied to AIG network.\n" );
+            fSuccess = 1;
+        }
+        else
+        {
+            printf( "Warning: Failed to apply timing-aware partition result to AIG network.\n" );
+            fSuccess = 1; // Still consider partitioning successful
+        }
+    }
+    
+    // Cleanup
+    if ( pResult )
+        Kahypar_ResultFree( pResult );
+    Kahypar_ParFree( pPars );
+    Aig_HyperFree( pHyper );
+    
+    return fSuccess;
+}
+
+/**Function*************************************************************
+
   Synopsis    [Gets partition result from KaHyPar.]
 
   Description [Returns partition assignment vector for IF mapping.]
@@ -513,6 +607,72 @@ int Kahypar_GetPartition( void * pNtk, int nPartitions, Vec_Int_t ** pvPartition
         if ( Aig_ApplyPartitionResult( pNtk, pHyper, pResult->vPartition, pResult->nPartitions ) )
         {
             printf( "Partition result successfully applied to AIG network.\n" );
+        }
+        
+        // Return the partition vector (transfer ownership)
+        *pvPartition = pResult->vPartition;
+        pResult->vPartition = NULL; // Prevent double free
+        fSuccess = 1;
+    }
+    
+    // Cleanup
+    if ( pResult )
+        Kahypar_ResultFree( pResult );
+    Kahypar_ParFree( pPars );
+    Aig_HyperFree( pHyper );
+    
+    return fSuccess;
+}
+
+/**Function*************************************************************
+
+  Synopsis    [Gets timing-aware partition result from KaHyPar.]
+
+  Description [Returns partition assignment vector for IF mapping with timing awareness.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Kahypar_GetTimingAwarePartition( void * pNtk, int nPartitions, Vec_Int_t ** pvPartition )
+{
+    Aig_Hyper_t * pHyper;
+    Kahypar_Par_t * pPars;
+    Kahypar_Result_t * pResult;
+    int fSuccess = 0;
+    
+    // Declare the timing-aware function
+    extern Aig_Hyper_t * Aig_NtkBuildTimingAwareHypergraph( void * pNtkVoid );
+    
+    *pvPartition = NULL;
+    
+    // Build timing-aware hypergraph
+    pHyper = Aig_NtkBuildTimingAwareHypergraph( pNtk );
+    if ( pHyper == NULL )
+    {
+        printf( "Kahypar_GetTimingAwarePartition(): Failed to build timing-aware hypergraph.\n" );
+        return 0;
+    }
+    
+    // Setup partitioning parameters
+    pPars = Kahypar_ParAlloc();
+    pPars->nPartitions = nPartitions;
+    pPars->fVerbose = 1;
+    pPars->fUseNodeWeights = 1;  // Use node weights for timing
+    pPars->fUseEdgeWeights = 1;  // Use edge weights for timing
+    
+    // Perform partitioning
+    pResult = Kahypar_PartitionHypergraph( pHyper, pPars );
+    
+    if ( pResult && pResult->fSuccess )
+    {
+        Kahypar_PrintResult( pResult );
+        
+        // Apply partition result to AIG network
+        if ( Aig_ApplyPartitionResult( pNtk, pHyper, pResult->vPartition, pResult->nPartitions ) )
+        {
+            printf( "Timing-aware partition result successfully applied to AIG network.\n" );
         }
         
         // Return the partition vector (transfer ownership)

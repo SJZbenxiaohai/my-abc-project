@@ -153,18 +153,36 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
     if ( pPars->fHyperGraph )
     {
 #ifdef ABC_USE_KAHYPAR
-        extern int Kahypar_TestPartition( void * pNtk, int nPartitions );
+        extern int Kahypar_GetPartition( void * pNtk, int nPartitions, Vec_Int_t ** pvPartition );
+        extern int Kahypar_GetTimingAwarePartition( void * pNtk, int nPartitions, Vec_Int_t ** pvPartition );
         extern void If_ManSetPartitionInfo( If_Man_t * pIfMan, void * pNtk, Vec_Int_t * vPartition, int nPartitions );
         
         if ( pPars->fVerbose )
-            Abc_Print( 1, "Hypergraph partitioning enabled for AIG network...\n" );
+        {
+            if ( pPars->fTimingAware )
+                Abc_Print( 1, "Timing-aware hypergraph partitioning enabled for AIG network...\n" );
+            else
+                Abc_Print( 1, "Hypergraph partitioning enabled for AIG network...\n" );
+        }
         
         // Store the partition information for later retrieval
         Vec_Int_t * vPartition = NULL;
         int nPartitions = 2; // Default to 2 partitions
+        int fSuccess = 0;
         
         // Perform hypergraph construction and KaHyPar partitioning
-        if ( !Kahypar_GetPartition( pNtk, nPartitions, &vPartition ) )
+        if ( pPars->fTimingAware )
+        {
+            // Use timing-aware partitioning
+            fSuccess = Kahypar_GetTimingAwarePartition( pNtk, nPartitions, &vPartition );
+        }
+        else
+        {
+            // Use regular partitioning
+            fSuccess = Kahypar_GetPartition( pNtk, nPartitions, &vPartition );
+        }
+        
+        if ( !fSuccess )
         {
             if ( pPars->fVerbose )
                 Abc_Print( 1, "Warning: Hypergraph partitioning failed, proceeding with standard mapping.\n" );
@@ -172,7 +190,12 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
         else
         {
             if ( pPars->fVerbose )
-                Abc_Print( 1, "Hypergraph partitioning completed successfully.\n" );
+            {
+                if ( pPars->fTimingAware )
+                    Abc_Print( 1, "Timing-aware hypergraph partitioning completed successfully.\n" );
+                else
+                    Abc_Print( 1, "Hypergraph partitioning completed successfully.\n" );
+            }
             
             // Pass partition info to IF manager
             If_ManSetPartitionInfo( pIfMan, pNtk, vPartition, nPartitions );
@@ -183,6 +206,10 @@ Abc_Ntk_t * Abc_NtkIf( Abc_Ntk_t * pNtk, If_Par_t * pPars )
             if ( pPars->fVerbose )
                 Abc_Print( 1, "Note: Expand/reduce optimization disabled for partition-aware mapping.\n" );
         }
+        
+        // Free the partition vector if allocated
+        if ( vPartition )
+            Vec_IntFree( vPartition );
 #else
         extern int Aig_HyperTest( void * pNtk );
         if ( pPars->fVerbose )
