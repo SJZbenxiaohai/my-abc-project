@@ -1,0 +1,46 @@
+=== FPGA Mapping Comparison Report ===
+Timestamp: 20250811_205337
+K-value: 6
+
+Test Configurations:
+  1. Standard: Traditional mapping without hypergraph partitioning
+  2. -H 0: Hypergraph partitioning WITHOUT critical path consideration
+  3. -H 1: Hypergraph partitioning WITH critical path consideration
+
+=== Category: arithmetic ===
+
+Benchmark                      Standard        -H 0            -H 1            CEC Status
+---------                      --------        ----            ----            ----------
+adder                          -               -               -               PASS      
+bar                            -               -               -               PASS      
+div                            -               -               -               PASS      
+hyp                            -               -               -               PASS      
+log2                           -               -               -               PASS      
+max                            -               -               -               PASS      
+multiplier                     -               -               -               PASS      
+sin                            -               -               -               PASS      
+sqrt                           -               -               -               PASS      
+square                         -               -               -               PASS      
+
+=== Category: random_control ===
+
+Benchmark                      Standard        -H 0            -H 1            CEC Status
+---------                      --------        ----            ----            ----------
+arbiter                        -               -               -               PASS      
+cavlc                          -               -               -               PASS      
+ctrl                           -               -               -               PASS      
+dec                            -               -               -               PASS      
+i2c                            -               -               -               PASS      
+int2float                      -               -               -               PASS      
+mem_ctrl                       -               -               -               PASS      
+priority                       -               -               -               PASS      
+router                         -               -               -               PASS      
+voter                          -               -               -               PASS      
+
+=== Partition Statistics Summary ===
+
+Category: arithmetic
+
+Category: random_control
+
+Full results available in: result/20250811_205337

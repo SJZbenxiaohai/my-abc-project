@@ -1,0 +1,27 @@
+FPGA Mapping Comparison Report
+Generated: 2025年 08月 11日 星期一 21:04:01 CST
+K-value: 6
+
+Configuration Details:
+  Standard: Traditional mapping without hypergraph partitioning
+  -H 0: Hypergraph partitioning WITHOUT critical path consideration
+  -H 1: Hypergraph partitioning WITH critical path consideration
+
+================================================================
+Category: arithmetic
+================================================================
+
+Benchmark                 Std_Nodes    H0_Nodes     H1_Nodes     H0_Cuts      H1_Cuts      Std_Lev      CEC       
+------------------------- ----------   ----------   ----------   ----------   ----------   ----------   ----------
+adder                     254          202          202          1            1            51           PASS      
+    H0 Partition sizes: 700/706
+    H1 Partition sizes: 700/706
+bar                       512          628          628          21           21           4            PASS      
+    H0 Partition sizes: 3416/184
+    H1 Partition sizes: 3416/184
+div                       22113        22766        22766        142          142          864          PASS      
+    H0 Partition sizes: 2987/54509
+    H1 Partition sizes: 2987/54509
+hyp                       44508        47722        47722        255          255          4194         PASS      
+    H0 Partition sizes: 141074/73646
+    H1 Partition sizes: 141074/73646

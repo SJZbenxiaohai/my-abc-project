@@ -1,0 +1,19 @@
+=== Comparison Summary for bar ===
+
+Configuration Details:
+  Standard: No hypergraph partitioning
+  -H 0: Hypergraph partitioning WITHOUT critical path consideration
+  -H 1: Hypergraph partitioning WITH critical path consideration
+
+--- Standard Mapping ---
+=== Mapping Statistics ===
+CEC: UNKNOWN
+
+--- Hypergraph Partitioning (No Critical Path) ---
+=== Mapping Statistics ===
+CEC: UNKNOWN
+
+--- Hypergraph Partitioning (With Critical Path) ---
+=== Mapping Statistics ===
+CEC: UNKNOWN
+
