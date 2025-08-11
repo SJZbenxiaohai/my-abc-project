@@ -369,9 +369,9 @@ int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPa
             Abc_NtkPiNum(pAig), Abc_NtkPoNum(pAig), Abc_NtkNodeNum(pAig), nPartitions );
     
     // Initialize partition data structures (LSOracle style)
-    vPartNodes = Vec_VecAlloc( nPartitions );
-    vPartInputs = Vec_VecAlloc( nPartitions );
-    vPartOutputs = Vec_VecAlloc( nPartitions );
+    vPartNodes = Vec_VecStart( nPartitions );
+    vPartInputs = Vec_VecStart( nPartitions );
+    vPartOutputs = Vec_VecStart( nPartitions );
     vPartSize = Vec_IntAlloc( nPartitions );
     
     // Initialize partition sizes
@@ -381,18 +381,51 @@ int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPa
     // Step 1: Assign nodes to partitions (similar to _part_scope in LSOracle)
     Abc_NtkForEachObj( pAig, pObj, i )
     {
-        if ( i >= Vec_IntSize(vPartition) )
+        int objId = Abc_ObjId( pObj );
+        if ( objId >= Vec_IntSize(vPartition) )
             continue;
             
-        partId = Vec_IntEntry( vPartition, i );
+        partId = Vec_IntEntry( vPartition, objId );
         if ( partId >= 0 && partId < nPartitions )
         {
-            Vec_VecPush( vPartNodes, partId, (void *)(size_t)i );
+            Vec_VecPush( vPartNodes, partId, (void *)(size_t)objId );
             Vec_IntAddToEntry( vPartSize, partId, 1 );
         }
     }
     
     // Step 2: Identify partition interfaces (similar to LSOracle's interface detection)
+    // First, process PI nodes to identify their fanouts crossing partition boundaries
+    Abc_NtkForEachPi( pAig, pObj, i )
+    {
+        nodeIdx = Abc_ObjId( pObj );
+        if ( nodeIdx >= Vec_IntSize(vPartition) )
+            continue;
+            
+        partId = Vec_IntEntry( vPartition, nodeIdx );
+        if ( partId < 0 || partId >= nPartitions )
+            continue;
+        
+        // Check fanouts of PI for cross-partition connections
+        Abc_ObjForEachFanout( pObj, pFanout, j )
+        {
+            int fanoutIdx = Abc_ObjId( pFanout );
+            if ( fanoutIdx >= Vec_IntSize(vPartition) )
+                continue;
+                
+            int fanoutPart = Vec_IntEntry( vPartition, fanoutIdx );
+            
+            // Cross-partition fanout detected
+            if ( fanoutPart != partId && fanoutPart >= 0 && fanoutPart < nPartitions )
+            {
+                // PI is output of its partition, feeding into fanout's partition
+                Vec_VecPushUnique( vPartOutputs, partId, (void *)(size_t)nodeIdx );
+                // PI is input to fanout's partition
+                Vec_VecPushUnique( vPartInputs, fanoutPart, (void *)(size_t)nodeIdx );
+            }
+        }
+    }
+    
+    // Then process internal nodes as before
     Abc_NtkForEachNode( pAig, pObj, i )
     {
         nodeIdx = Abc_ObjId( pObj );
@@ -443,14 +476,28 @@ int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPa
     
     // Step 4: Print partition statistics (similar to LSOracle's output)
     printf( "Partition analysis completed:\n" );
+    
+    // Count PI nodes in each partition for debugging
+    int nPIsInPartition[2] = {0, 0};
+    Abc_NtkForEachPi( pAig, pObj, i )
+    {
+        int objId = Abc_ObjId( pObj );
+        if ( objId < Vec_IntSize(vPartition) )
+        {
+            int part = Vec_IntEntry( vPartition, objId );
+            if ( part >= 0 && part < nPartitions )
+                nPIsInPartition[part]++;
+        }
+    }
+    
     for ( i = 0; i < nPartitions; i++ )
     {
         int nNodes = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartNodes, i) );
         int nInputs = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartInputs, i) );
         int nOutputs = Vec_IntSize( (Vec_Int_t *)Vec_VecEntry(vPartOutputs, i) );
         
-        printf( "  Partition %d: %d nodes, %d inputs, %d outputs\n", 
-                i, nNodes, nInputs, nOutputs );
+        printf( "  Partition %d: %d nodes (%d PIs), %d inputs, %d outputs\n", 
+                i, nNodes, nPIsInPartition[i], nInputs, nOutputs );
     }
     
     // Calculate cut edges (connections between partitions)

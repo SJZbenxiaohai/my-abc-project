@@ -86,6 +86,50 @@ void If_ManSetPartitionInfo( If_Man_t * pIfMan, void * pNtk, Vec_Int_t * vPartit
     pIfMan->vPartInputs = Vec_VecStart( nPartitions );
     pIfMan->vPartOutputs = Vec_VecStart( nPartitions );
     
+    // First, process PI nodes to identify their fanouts crossing partition boundaries
+    Abc_NtkForEachPi( pAig, pObj, i )
+    {
+        If_Obj_t * pIfObj = (If_Obj_t *)pObj->pCopy;
+        if ( !pIfObj )
+            continue;
+            
+        int nodeId = Abc_ObjId( pObj );
+        if ( nodeId >= Vec_IntSize(vPartition) )
+            continue;
+            
+        int partId = Vec_IntEntry( vPartition, nodeId );
+        if ( partId < 0 || partId >= nPartitions )
+            continue;
+        
+        // Set the partition for the IF object using IF object ID
+        Vec_IntWriteEntry( pIfMan->vPartition, If_ObjId(pIfObj), partId );
+        
+        // Check fanouts of PI for cross-partition connections
+        Abc_Obj_t * pFanout;
+        int j;
+        Abc_ObjForEachFanout( pObj, pFanout, j )
+        {
+            If_Obj_t * pIfFanout = (If_Obj_t *)pFanout->pCopy;
+            if ( !pIfFanout )
+                continue;
+                
+            int fanoutId = Abc_ObjId( pFanout );
+            if ( fanoutId >= Vec_IntSize(vPartition) )
+                continue;
+                
+            int fanoutPart = Vec_IntEntry( vPartition, fanoutId );
+            
+            // Cross-partition fanout detected
+            if ( fanoutPart != partId && fanoutPart >= 0 && fanoutPart < nPartitions )
+            {
+                // PI is output of its partition, feeding into fanout's partition
+                Vec_VecPushUniqueInt( pIfMan->vPartOutputs, partId, If_ObjId(pIfObj) );
+                // PI is input to fanout's partition
+                Vec_VecPushUniqueInt( pIfMan->vPartInputs, fanoutPart, If_ObjId(pIfObj) );
+            }
+        }
+    }
+    
     // Map AIG node IDs to IF object IDs and identify partition boundaries
     Abc_NtkForEachNode( pAig, pObj, i )
     {
@@ -123,6 +167,29 @@ void If_ManSetPartitionInfo( If_Man_t * pIfMan, void * pNtk, Vec_Int_t * vPartit
                     Vec_VecPushUniqueInt( pIfMan->vPartOutputs, faninPart, If_ObjId((If_Obj_t *)pFanin->pCopy) );
                     // Mark fanin as input to current partition
                     Vec_VecPushUniqueInt( pIfMan->vPartInputs, partId, If_ObjId((If_Obj_t *)pFanin->pCopy) );
+                }
+            }
+        }
+    }
+    
+    // Handle primary outputs - nodes driving POs should be marked as partition outputs
+    Abc_NtkForEachPo( pAig, pObj, i )
+    {
+        Abc_Obj_t * pFanin = Abc_ObjFanin0( pObj );
+        if ( pFanin )
+        {
+            If_Obj_t * pIfFanin = (If_Obj_t *)pFanin->pCopy;
+            if ( pIfFanin )
+            {
+                int faninId = Abc_ObjId( pFanin );
+                if ( faninId < Vec_IntSize(vPartition) )
+                {
+                    int faninPart = Vec_IntEntry( vPartition, faninId );
+                    if ( faninPart >= 0 && faninPart < nPartitions )
+                    {
+                        // Mark this node as output of its partition since it drives a PO
+                        Vec_VecPushUniqueInt( pIfMan->vPartOutputs, faninPart, If_ObjId(pIfFanin) );
+                    }
                 }
             }
         }

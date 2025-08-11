@@ -55,7 +55,7 @@ test_file() {
         echo "Standard mapping (if -K 6):"
     } >> "$LOG_FILE"
     
-    STD_OUTPUT=$(echo "read $aig_file; if -K 6; ps" | ./abc 2>&1)
+    STD_OUTPUT=$(echo "read $aig_file; if -K 6; ps; cec" | ./abc 2>&1)
     echo "$STD_OUTPUT" | tail -20 >> "$LOG_FILE"
     
     # Extract statistics
@@ -71,7 +71,7 @@ test_file() {
             echo "Partition-aware mapping (if -K 6 -H):"
         } >> "$LOG_FILE"
         
-        PART_OUTPUT=$(echo "read $aig_file; if -K 6 -H; ps" | ./abc 2>&1)
+        PART_OUTPUT=$(echo "read $aig_file; if -K 6 -H; ps; cec" | ./abc 2>&1)
         echo "$PART_OUTPUT" | tail -20 >> "$LOG_FILE"
         
         # Extract statistics
