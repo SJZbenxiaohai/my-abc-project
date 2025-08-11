@@ -469,6 +469,67 @@ int Kahypar_TestPartition( void * pNtk, int nPartitions )
     return fSuccess;
 }
 
+/**Function*************************************************************
+
+  Synopsis    [Gets partition result from KaHyPar.]
+
+  Description [Returns partition assignment vector for IF mapping.]
+               
+  SideEffects []
+
+  SeeAlso     []
+
+***********************************************************************/
+int Kahypar_GetPartition( void * pNtk, int nPartitions, Vec_Int_t ** pvPartition )
+{
+    Aig_Hyper_t * pHyper;
+    Kahypar_Par_t * pPars;
+    Kahypar_Result_t * pResult;
+    int fSuccess = 0;
+    
+    *pvPartition = NULL;
+    
+    // Build hypergraph
+    pHyper = Aig_NtkBuildHypergraph( pNtk );
+    if ( pHyper == NULL )
+    {
+        printf( "Kahypar_GetPartition(): Failed to build hypergraph.\n" );
+        return 0;
+    }
+    
+    // Setup partitioning parameters
+    pPars = Kahypar_ParAlloc();
+    pPars->nPartitions = nPartitions;
+    pPars->fVerbose = 1;
+    
+    // Perform partitioning
+    pResult = Kahypar_PartitionHypergraph( pHyper, pPars );
+    
+    if ( pResult && pResult->fSuccess )
+    {
+        Kahypar_PrintResult( pResult );
+        
+        // Apply partition result to AIG network
+        if ( Aig_ApplyPartitionResult( pNtk, pHyper, pResult->vPartition, pResult->nPartitions ) )
+        {
+            printf( "Partition result successfully applied to AIG network.\n" );
+        }
+        
+        // Return the partition vector (transfer ownership)
+        *pvPartition = pResult->vPartition;
+        pResult->vPartition = NULL; // Prevent double free
+        fSuccess = 1;
+    }
+    
+    // Cleanup
+    if ( pResult )
+        Kahypar_ResultFree( pResult );
+    Kahypar_ParFree( pPars );
+    Aig_HyperFree( pHyper );
+    
+    return fSuccess;
+}
+
 ABC_NAMESPACE_IMPL_END
 
 #endif // ABC_USE_KAHYPAR

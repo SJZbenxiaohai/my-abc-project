@@ -1,0 +1,95 @@
+Timing-Aware Hypergraph Partitioning Test Results
+=================================================
+Date: 2025年 08月 07日 星期四 20:05:08 CST
+
+Testing: adder.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder:[0m i/o =  256/  129  lat =    0  nd =   254  edge =   1036  aig  =  1666  lev = 51
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/adder:[0m i/o =  256/  129  lat =    0  nd =   202  edge =    820  aig  =  1488  lev = 74
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+
+
+
+Testing: bar.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar:[0m i/o =  135/  128  lat =    0  nd =   512  edge =   2688  aig  =  4608  lev = 4
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar:[0m i/o =  135/  128  lat =    0  nd =   512  edge =   2688  aig  =  4608  lev = 4
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/bar:[0m i/o =  135/  128  lat =    0  nd =   512  edge =   2688  aig  =  4608  lev = 4
+
+
+Testing: max.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max:[0m i/o =  512/  130  lat =    0  nd =   842  edge =   3350  aig  =  3365  lev = 56
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max:[0m i/o =  512/  130  lat =    0  nd =   741  edge =   3424  aig  =  3895  lev = 115
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/arithmetic/max:[0m i/o =  512/  130  lat =    0  nd =   737  edge =   3407  aig  =  3863  lev = 117
+
+
+Testing: arbiter.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter:[0m i/o =  256/  129  lat =    0  nd =  2722  edge =  15137  aig  = 12415  lev = 18
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter:[0m i/o =  256/  129  lat =    0  nd =  2614  edge =  15089  aig  = 12475  lev = 20
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/arbiter:[0m i/o =  256/  129  lat =    0  nd =  2602  edge =  15038  aig  = 12436  lev = 20
+
+
+Testing: cavlc.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc:[0m i/o =   10/   11  lat =    0  nd =   122  edge =    628  aig  =   969  lev = 4
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc:[0m i/o =   10/   11  lat =    0  nd =   116  edge =    632  aig  =   973  lev = 8
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/cavlc:[0m i/o =   10/   11  lat =    0  nd =   119  edge =    635  aig  =   972  lev = 8
+
+
+Testing: ctrl.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl:[0m i/o =    7/   26  lat =    0  nd =    29  edge =    136  aig  =   316  lev = 2
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl:[0m i/o =    7/   26  lat =    0  nd =    29  edge =    136  aig  =   316  lev = 2
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37m/home/sjz/C/Data/FPGA-Mapping/benchmarks/random_control/ctrl:[0m i/o =    7/   26  lat =    0  nd =    29  edge =    136  aig  =   316  lev = 2
+
+
+Testing: i10.aig
+----------------------------------------
+Mode 1: Standard mapping (no -H)
+[1;37mi10                           :[0m i/o =  257/  224  lat =    0  nd =   612  edge =   2679  aig  =  4034  lev = 11
+
+Mode 2: Regular hypergraph partitioning (-H or -H 0)
+[1;37mi10                           :[0m i/o =  257/  224  lat =    0  nd =   573  edge =   2777  aig  =  4480  lev = 22
+
+Mode 3: Timing-aware hypergraph partitioning (-H 1)
+[1;37mi10                           :[0m i/o =  257/  224  lat =    0  nd =   572  edge =   2780  aig  =  4484  lev = 22
+
+
+========================================
+Summary Statistics
+========================================
+Timing-aware vs Regular partitioning:
+  Better delay: 0 circuits
+  Same delay:   0 circuits
+  Worse delay:  0 circuits

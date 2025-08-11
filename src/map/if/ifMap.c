@@ -633,7 +633,16 @@ int If_ManPerformMappingRound( If_Man_t * p, int nCutsUsed, int Mode, int fPrepr
         {
             if ( If_ObjIsAnd(pObj) )
             {
-                If_ObjPerformMappingAnd( p, pObj, Mode, fPreprocess, fFirst );
+                // Use partition-aware mapping if partition info is available
+                if ( p->vPartition && p->pPars->fHyperGraph )
+                {
+                    extern void If_ObjPerformMappingAndPartitionAware( If_Man_t * p, If_Obj_t * pObj, int Mode, int fPreprocess, int fFirst );
+                    If_ObjPerformMappingAndPartitionAware( p, pObj, Mode, fPreprocess, fFirst );
+                }
+                else
+                {
+                    If_ObjPerformMappingAnd( p, pObj, Mode, fPreprocess, fFirst );
+                }
                 if ( pObj->fRepr )
                     If_ObjPerformMappingChoice( p, pObj, Mode, fPreprocess );
             }
@@ -664,7 +673,16 @@ int If_ManPerformMappingRound( If_Man_t * p, int nCutsUsed, int Mode, int fPrepr
         If_ManForEachNode( p, pObj, i )
         {
             Extra_ProgressBarUpdate( pProgress, i, pLabel );
-            If_ObjPerformMappingAnd( p, pObj, Mode, fPreprocess, fFirst );
+            // Use partition-aware mapping if partition info is available
+            if ( p->vPartition && p->pPars->fHyperGraph )
+            {
+                extern void If_ObjPerformMappingAndPartitionAware( If_Man_t * p, If_Obj_t * pObj, int Mode, int fPreprocess, int fFirst );
+                If_ObjPerformMappingAndPartitionAware( p, pObj, Mode, fPreprocess, fFirst );
+            }
+            else
+            {
+                If_ObjPerformMappingAnd( p, pObj, Mode, fPreprocess, fFirst );
+            }
             if ( pObj->fRepr )
                 If_ObjPerformMappingChoice( p, pObj, Mode, fPreprocess );
         }
