@@ -51,11 +51,28 @@ run_mapping() {
     # Clean up temp files
     rm -f "$temp_output"
     
-    # Extract statistics
-    local stats_line=$(echo "$output" | grep "top" | tail -1)
-    local nodes=$(echo "$stats_line" | grep -oE "nd\s*=\s*[0-9]+" | grep -oE "[0-9]+")
-    local edges=$(echo "$stats_line" | grep -oE "edge\s*=\s*[0-9]+" | grep -oE "[0-9]+")
-    local levels=$(echo "$stats_line" | grep -oE "lev\s*=\s*[0-9]+" | grep -oE "[0-9]+")
+    # Extract statistics - look for the line with network name
+    local stats_line=$(echo "$output" | grep -E "^\S+\s+:" | tail -1)
+    if [ -z "$stats_line" ]; then
+        # Try alternative format
+        stats_line=$(echo "$output" | grep "i/o" | tail -1)
+    fi
+    
+    # Extract values more robustly
+    local nodes=$(echo "$stats_line" | sed 's/.*nd = *\([0-9]*\).*/\1/')
+    local levels=$(echo "$stats_line" | sed 's/.*lev = *\([0-9]*\).*/\1/')
+    local edges=$(echo "$stats_line" | sed 's/.*edge = *\([0-9]*\).*/\1/')
+    
+    # Validate extracted values
+    if ! [[ "$nodes" =~ ^[0-9]+$ ]]; then
+        nodes="0"
+    fi
+    if ! [[ "$levels" =~ ^[0-9]+$ ]]; then
+        levels="0"
+    fi
+    if ! [[ "$edges" =~ ^[0-9]+$ ]]; then
+        edges="0"
+    fi
     
     # Check CEC result
     local cec_result="UNKNOWN"
@@ -83,11 +100,17 @@ process_benchmarks() {
     local category=$2
     local bench_dir="$BENCHMARKS_DIR/$category"
     
-    echo "" | tee -a "$log_file"
-    echo "================================================================" | tee -a "$log_file"
-    echo "Category: $category" | tee -a "$log_file"
-    echo "================================================================" | tee -a "$log_file"
-    echo "" | tee -a "$log_file"
+    echo ""
+    echo "================================================================"
+    echo "Category: $category"
+    echo "================================================================"
+    echo ""
+    
+    echo "" >> "$log_file"
+    echo "================================================================" >> "$log_file"
+    echo "Category: $category" >> "$log_file"
+    echo "================================================================" >> "$log_file"
+    echo "" >> "$log_file"
     
     # Statistics for this category
     local cat_total=0
@@ -97,31 +120,59 @@ process_benchmarks() {
     local cat_h1_worse=0
     
     # Process each benchmark
-    for benchmark in "$bench_dir"/*.blif; do
-        if [ ! -f "$benchmark" ]; then
-            continue
-        fi
+    echo "Looking for benchmarks in: $bench_dir/"
+    
+    # Check if directory exists
+    if [ ! -d "$bench_dir" ]; then
+        echo "Directory not found: $bench_dir"
+        echo "Directory not found: $bench_dir" >> "$log_file"
+        echo "$cat_total|$cat_h0_improved|$cat_h1_improved|$cat_h0_worse|$cat_h1_worse"
+        return
+    fi
+    
+    # Count files - support both .blif and .aig formats
+    local blif_count=$(ls "$bench_dir"/*.blif 2>/dev/null | wc -l)
+    local aig_count=$(ls "$bench_dir"/*.aig 2>/dev/null | wc -l)
+    echo "Found $blif_count .blif files and $aig_count .aig files"
+    
+    if [ $blif_count -eq 0 ] && [ $aig_count -eq 0 ]; then
+        echo "No benchmark files found in $bench_dir"
+        echo "No benchmark files found in $bench_dir" >> "$log_file"
+        echo "$cat_total|$cat_h0_improved|$cat_h1_improved|$cat_h0_worse|$cat_h1_worse"
+        return
+    fi
+    
+    # Process both .blif and .aig files
+    for benchmark in "$bench_dir"/*.blif "$bench_dir"/*.aig; do
+        [ ! -f "$benchmark" ] && continue
         
-        local bench_name=$(basename "$benchmark" .blif)
-        echo -e "${GREEN}Processing: $category/$bench_name${NC}" | tee -a "$log_file"
+        local bench_name=$(basename "$benchmark" | sed 's/\.\(blif\|aig\)$//')
+        echo -e "${GREEN}Processing: $category/$bench_name${NC}"
+        echo "Processing: $category/$bench_name" >> "$log_file"
         
         # Run standard mapping
-        echo -n "  Standard mapping..." | tee -a "$log_file"
+        echo -n "  Standard mapping..."
+        echo -n "  Standard mapping..." >> "$log_file"
         local std_result=$(run_mapping "$benchmark" "")
         IFS='|' read -r std_nodes std_edges std_levels std_cuts std_cec <<< "$std_result"
-        echo " done (nodes=$std_nodes, lev=$std_levels)" | tee -a "$log_file"
+        echo " done (nodes=$std_nodes, lev=$std_levels)"
+        echo " done (nodes=$std_nodes, lev=$std_levels)" >> "$log_file"
         
         # Run with -H 0
-        echo -n "  Hypergraph (-H 0)..." | tee -a "$log_file"
+        echo -n "  Hypergraph (-H 0)..."
+        echo -n "  Hypergraph (-H 0)..." >> "$log_file"
         local h0_result=$(run_mapping "$benchmark" "-H 0")
         IFS='|' read -r h0_nodes h0_edges h0_levels h0_cuts h0_cec <<< "$h0_result"
-        echo " done (nodes=$h0_nodes, lev=$h0_levels)" | tee -a "$log_file"
+        echo " done (nodes=$h0_nodes, lev=$h0_levels)"
+        echo " done (nodes=$h0_nodes, lev=$h0_levels)" >> "$log_file"
         
         # Run with -H 1
-        echo -n "  Hypergraph (-H 1)..." | tee -a "$log_file"
+        echo -n "  Hypergraph (-H 1)..."
+        echo -n "  Hypergraph (-H 1)..." >> "$log_file"
         local h1_result=$(run_mapping "$benchmark" "-H 1")
         IFS='|' read -r h1_nodes h1_edges h1_levels h1_cuts h1_cec <<< "$h1_result"
-        echo " done (nodes=$h1_nodes, lev=$h1_levels)" | tee -a "$log_file"
+        echo " done (nodes=$h1_nodes, lev=$h1_levels)"
+        echo " done (nodes=$h1_nodes, lev=$h1_levels)" >> "$log_file"
         
         # Determine overall CEC status
         local cec_status="PASS"
@@ -130,13 +181,16 @@ process_benchmarks() {
         fi
         
         # Calculate and display improvements
-        echo "  Results:" | tee -a "$log_file"
-        echo "    Standard: nodes=$std_nodes, lev=$std_levels" | tee -a "$log_file"
+        echo "  Results:"
+        echo "  Results:" >> "$log_file"
+        echo "    Standard: nodes=$std_nodes, lev=$std_levels"
+        echo "    Standard: nodes=$std_nodes, lev=$std_levels" >> "$log_file"
         
         if [ "$std_nodes" -gt 0 ] 2>/dev/null && [ "$h0_nodes" -gt 0 ] 2>/dev/null; then
             local h0_node_pct=$(echo "scale=1; ($h0_nodes - $std_nodes) * 100 / $std_nodes" | bc)
             local h0_lev_diff=$((h0_levels - std_levels))
-            echo "    -H 0:     nodes=$h0_nodes ($h0_node_pct%), lev=$h0_levels (${h0_lev_diff:+}$h0_lev_diff)" | tee -a "$log_file"
+            echo "    -H 0:     nodes=$h0_nodes ($h0_node_pct%), lev=$h0_levels (${h0_lev_diff:+}$h0_lev_diff)"
+            echo "    -H 0:     nodes=$h0_nodes ($h0_node_pct%), lev=$h0_levels (${h0_lev_diff:+}$h0_lev_diff)" >> "$log_file"
             
             # Update statistics
             if (( $(echo "$h0_node_pct < 0" | bc -l) )); then
@@ -149,7 +203,8 @@ process_benchmarks() {
         if [ "$std_nodes" -gt 0 ] 2>/dev/null && [ "$h1_nodes" -gt 0 ] 2>/dev/null; then
             local h1_node_pct=$(echo "scale=1; ($h1_nodes - $std_nodes) * 100 / $std_nodes" | bc)
             local h1_lev_diff=$((h1_levels - std_levels))
-            echo "    -H 1:     nodes=$h1_nodes ($h1_node_pct%), lev=$h1_levels (${h1_lev_diff:+}$h1_lev_diff)" | tee -a "$log_file"
+            echo "    -H 1:     nodes=$h1_nodes ($h1_node_pct%), lev=$h1_levels (${h1_lev_diff:+}$h1_lev_diff)"
+            echo "    -H 1:     nodes=$h1_nodes ($h1_node_pct%), lev=$h1_levels (${h1_lev_diff:+}$h1_lev_diff)" >> "$log_file"
             
             # Update statistics
             if (( $(echo "$h1_node_pct < 0" | bc -l) )); then
@@ -159,22 +214,30 @@ process_benchmarks() {
             fi
         fi
         
-        echo "    CEC: $cec_status" | tee -a "$log_file"
+        echo "    CEC: $cec_status"
+        echo "    CEC: $cec_status" >> "$log_file"
         
         if [ "$cec_status" = "FAIL" ]; then
-            echo -e "    ${RED}WARNING: Functional equivalence check failed!${NC}" | tee -a "$log_file"
+            echo -e "    ${RED}WARNING: Functional equivalence check failed!${NC}"
+            echo "    WARNING: Functional equivalence check failed!" >> "$log_file"
         fi
         
         cat_total=$((cat_total + 1))
-        echo "" | tee -a "$log_file"
+        echo ""
+        echo "" >> "$log_file"
     done
     
     # Category summary
-    echo "Category Summary for $category:" | tee -a "$log_file"
-    echo "  Total benchmarks: $cat_total" | tee -a "$log_file"
-    echo "  -H 0: $cat_h0_improved improved, $cat_h0_worse worse" | tee -a "$log_file"
-    echo "  -H 1: $cat_h1_improved improved, $cat_h1_worse worse" | tee -a "$log_file"
-    echo "" | tee -a "$log_file"
+    echo "Category Summary for $category:"
+    echo "Category Summary for $category:" >> "$log_file"
+    echo "  Total benchmarks: $cat_total"
+    echo "  Total benchmarks: $cat_total" >> "$log_file"
+    echo "  -H 0: $cat_h0_improved improved, $cat_h0_worse worse"
+    echo "  -H 0: $cat_h0_improved improved, $cat_h0_worse worse" >> "$log_file"
+    echo "  -H 1: $cat_h1_improved improved, $cat_h1_worse worse"
+    echo "  -H 1: $cat_h1_improved improved, $cat_h1_worse worse" >> "$log_file"
+    echo ""
+    echo "" >> "$log_file"
     
     # Return statistics
     echo "$cat_total|$cat_h0_improved|$cat_h1_improved|$cat_h0_worse|$cat_h1_worse"
@@ -189,11 +252,17 @@ calculate_summary() {
     local h0_worse=$5
     local h1_worse=$6
     
-    echo "" | tee -a "$log_file"
-    echo "================================================================" | tee -a "$log_file"
-    echo "FINAL SUMMARY" | tee -a "$log_file"
-    echo "================================================================" | tee -a "$log_file"
-    echo "" | tee -a "$log_file"
+    echo ""
+    echo "================================================================"
+    echo "FINAL SUMMARY"
+    echo "================================================================"
+    echo ""
+    
+    echo "" >> "$log_file"
+    echo "================================================================" >> "$log_file"
+    echo "FINAL SUMMARY" >> "$log_file"
+    echo "================================================================" >> "$log_file"
+    echo "" >> "$log_file"
     
     if [ $total_benchmarks -gt 0 ]; then
         local h0_improved_pct=$((h0_improved * 100 / total_benchmarks))
@@ -201,33 +270,49 @@ calculate_summary() {
         local h0_worse_pct=$((h0_worse * 100 / total_benchmarks))
         local h1_worse_pct=$((h1_worse * 100 / total_benchmarks))
         
-        echo "Total benchmarks tested: $total_benchmarks" | tee -a "$log_file"
-        echo "" | tee -a "$log_file"
+        echo "Total benchmarks tested: $total_benchmarks"
+        echo "Total benchmarks tested: $total_benchmarks" >> "$log_file"
+        echo ""
+        echo "" >> "$log_file"
         
-        echo "Results for -H 0 (Hypergraph without critical path):" | tee -a "$log_file"
-        echo "  Improved (fewer nodes): $h0_improved ($h0_improved_pct%)" | tee -a "$log_file"
-        echo "  Worse (more nodes):     $h0_worse ($h0_worse_pct%)" | tee -a "$log_file"
-        echo "" | tee -a "$log_file"
+        echo "Results for -H 0 (Hypergraph without critical path):"
+        echo "Results for -H 0 (Hypergraph without critical path):" >> "$log_file"
+        echo "  Improved (fewer nodes): $h0_improved ($h0_improved_pct%)"
+        echo "  Improved (fewer nodes): $h0_improved ($h0_improved_pct%)" >> "$log_file"
+        echo "  Worse (more nodes):     $h0_worse ($h0_worse_pct%)"
+        echo "  Worse (more nodes):     $h0_worse ($h0_worse_pct%)" >> "$log_file"
+        echo ""
+        echo "" >> "$log_file"
         
-        echo "Results for -H 1 (Hypergraph with critical path):" | tee -a "$log_file"
-        echo "  Improved (fewer nodes): $h1_improved ($h1_improved_pct%)" | tee -a "$log_file"
-        echo "  Worse (more nodes):     $h1_worse ($h1_worse_pct%)" | tee -a "$log_file"
-        echo "" | tee -a "$log_file"
+        echo "Results for -H 1 (Hypergraph with critical path):"
+        echo "Results for -H 1 (Hypergraph with critical path):" >> "$log_file"
+        echo "  Improved (fewer nodes): $h1_improved ($h1_improved_pct%)"
+        echo "  Improved (fewer nodes): $h1_improved ($h1_improved_pct%)" >> "$log_file"
+        echo "  Worse (more nodes):     $h1_worse ($h1_worse_pct%)"
+        echo "  Worse (more nodes):     $h1_worse ($h1_worse_pct%)" >> "$log_file"
+        echo ""
+        echo "" >> "$log_file"
         
         # Check CEC status
         local cec_check=$(grep "CEC: FAIL" "$log_file" | wc -l)
         if [ $cec_check -eq 0 ]; then
-            echo -e "${GREEN}✓ All mappings are functionally equivalent to original${NC}" | tee -a "$log_file"
+            echo -e "${GREEN}✓ All mappings are functionally equivalent to original${NC}"
+            echo "✓ All mappings are functionally equivalent to original" >> "$log_file"
         else
-            echo -e "${RED}✗ WARNING: $cec_check benchmarks failed equivalence check!${NC}" | tee -a "$log_file"
-            echo "Failed benchmarks:" | tee -a "$log_file"
-            grep -B4 "CEC: FAIL" "$log_file" | grep "Processing:" | sed 's/Processing: /  - /' | tee -a "$log_file"
+            echo -e "${RED}✗ WARNING: $cec_check benchmarks failed equivalence check!${NC}"
+            echo "✗ WARNING: $cec_check benchmarks failed equivalence check!" >> "$log_file"
+            echo "Failed benchmarks:"
+            echo "Failed benchmarks:" >> "$log_file"
+            grep -B4 "CEC: FAIL" "$log_file" | grep "Processing:" | sed 's/Processing: /  - /'
+            grep -B4 "CEC: FAIL" "$log_file" | grep "Processing:" | sed 's/Processing: /  - /' >> "$log_file"
         fi
     else
-        echo "No valid benchmark results found!" | tee -a "$log_file"
+        echo "No valid benchmark results found!"
+        echo "No valid benchmark results found!" >> "$log_file"
     fi
     
-    echo "" | tee -a "$log_file"
+    echo ""
+    echo "" >> "$log_file"
 }
 
 # Main execution
@@ -271,23 +356,90 @@ main() {
     
     # Process arithmetic benchmarks
     echo -e "${BLUE}Processing Arithmetic Benchmarks...${NC}"
-    arith_stats=$(process_benchmarks "$LOG_FILE" "arithmetic")
-    IFS='|' read -r arith_total arith_h0_imp arith_h1_imp arith_h0_worse arith_h1_worse <<< "$arith_stats"
-    total_benchmarks=$((total_benchmarks + arith_total))
-    total_h0_improved=$((total_h0_improved + arith_h0_imp))
-    total_h1_improved=$((total_h1_improved + arith_h1_imp))
-    total_h0_worse=$((total_h0_worse + arith_h0_worse))
-    total_h1_worse=$((total_h1_worse + arith_h1_worse))
+    
+    # Directly process without function call for debugging
+    bench_dir="$BENCHMARKS_DIR/arithmetic"
+    echo "Looking for files in: $bench_dir"
+    
+    if [ ! -d "$bench_dir" ]; then
+        echo "Directory not found: $bench_dir"
+    else
+        for benchmark in "$bench_dir"/*.aig "$bench_dir"/*.blif; do
+            [ ! -f "$benchmark" ] && continue
+            
+            bench_name=$(basename "$benchmark" | sed 's/\.\(blif\|aig\)$//')
+            echo -e "${GREEN}Processing: $bench_name${NC}"
+            echo "Processing: arithmetic/$bench_name" >> "$LOG_FILE"
+            
+            # Run standard mapping
+            echo -n "  Standard mapping..."
+            std_result=$(run_mapping "$benchmark" "")
+            IFS='|' read -r std_nodes std_edges std_levels std_cuts std_cec <<< "$std_result"
+            echo " done (nodes=$std_nodes, lev=$std_levels)"
+            echo "  Standard: nodes=$std_nodes, lev=$std_levels, cec=$std_cec" >> "$LOG_FILE"
+            
+            # Run with -H 0
+            echo -n "  Hypergraph (-H 0)..."
+            h0_result=$(run_mapping "$benchmark" "-H 0")
+            IFS='|' read -r h0_nodes h0_edges h0_levels h0_cuts h0_cec <<< "$h0_result"
+            echo " done (nodes=$h0_nodes, lev=$h0_levels)"
+            echo "  -H 0: nodes=$h0_nodes, lev=$h0_levels, cec=$h0_cec" >> "$LOG_FILE"
+            
+            # Run with -H 1
+            echo -n "  Hypergraph (-H 1)..."
+            h1_result=$(run_mapping "$benchmark" "-H 1")
+            IFS='|' read -r h1_nodes h1_edges h1_levels h1_cuts h1_cec <<< "$h1_result"
+            echo " done (nodes=$h1_nodes, lev=$h1_levels)"
+            echo "  -H 1: nodes=$h1_nodes, lev=$h1_levels, cec=$h1_cec" >> "$LOG_FILE"
+            
+            echo ""
+            echo "" >> "$LOG_FILE"
+            total_benchmarks=$((total_benchmarks + 1))
+        done
+    fi
     
     # Process random_control benchmarks
     echo -e "${BLUE}Processing Random Control Benchmarks...${NC}"
-    control_stats=$(process_benchmarks "$LOG_FILE" "random_control")
-    IFS='|' read -r control_total control_h0_imp control_h1_imp control_h0_worse control_h1_worse <<< "$control_stats"
-    total_benchmarks=$((total_benchmarks + control_total))
-    total_h0_improved=$((total_h0_improved + control_h0_imp))
-    total_h1_improved=$((total_h1_improved + control_h1_imp))
-    total_h0_worse=$((total_h0_worse + control_h0_worse))
-    total_h1_worse=$((total_h1_worse + control_h1_worse))
+    
+    bench_dir="$BENCHMARKS_DIR/random_control"
+    echo "Looking for files in: $bench_dir"
+    
+    if [ ! -d "$bench_dir" ]; then
+        echo "Directory not found: $bench_dir"
+    else
+        for benchmark in "$bench_dir"/*.aig "$bench_dir"/*.blif; do
+            [ ! -f "$benchmark" ] && continue
+            
+            bench_name=$(basename "$benchmark" | sed 's/\.\(blif\|aig\)$//')
+            echo -e "${GREEN}Processing: $bench_name${NC}"
+            echo "Processing: random_control/$bench_name" >> "$LOG_FILE"
+            
+            # Run standard mapping
+            echo -n "  Standard mapping..."
+            std_result=$(run_mapping "$benchmark" "")
+            IFS='|' read -r std_nodes std_edges std_levels std_cuts std_cec <<< "$std_result"
+            echo " done (nodes=$std_nodes, lev=$std_levels)"
+            echo "  Standard: nodes=$std_nodes, lev=$std_levels, cec=$std_cec" >> "$LOG_FILE"
+            
+            # Run with -H 0
+            echo -n "  Hypergraph (-H 0)..."
+            h0_result=$(run_mapping "$benchmark" "-H 0")
+            IFS='|' read -r h0_nodes h0_edges h0_levels h0_cuts h0_cec <<< "$h0_result"
+            echo " done (nodes=$h0_nodes, lev=$h0_levels)"
+            echo "  -H 0: nodes=$h0_nodes, lev=$h0_levels, cec=$h0_cec" >> "$LOG_FILE"
+            
+            # Run with -H 1
+            echo -n "  Hypergraph (-H 1)..."
+            h1_result=$(run_mapping "$benchmark" "-H 1")
+            IFS='|' read -r h1_nodes h1_edges h1_levels h1_cuts h1_cec <<< "$h1_result"
+            echo " done (nodes=$h1_nodes, lev=$h1_levels)"
+            echo "  -H 1: nodes=$h1_nodes, lev=$h1_levels, cec=$h1_cec" >> "$LOG_FILE"
+            
+            echo ""
+            echo "" >> "$LOG_FILE"
+            total_benchmarks=$((total_benchmarks + 1))
+        done
+    fi
     
     # Calculate and display final summary
     calculate_summary "$LOG_FILE" $total_benchmarks $total_h0_improved $total_h1_improved $total_h0_worse $total_h1_worse

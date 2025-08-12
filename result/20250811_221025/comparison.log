@@ -1,0 +1,225 @@
+FPGA Mapping Comparison Report
+Generated: 2025年 08月 11日 星期一 22:10:25 CST
+K-value: 6
+
+Configuration Details:
+  Standard: Traditional mapping without hypergraph partitioning
+  -H 0: Hypergraph partitioning WITHOUT critical path consideration
+  -H 1: Hypergraph partitioning WITH critical path consideration
+Processing: arithmetic/adder
+  Standard: nodes=254, lev=51, cec=PASS
+  -H 0: nodes=202, lev=74, cec=PASS
+  -H 1: nodes=202, lev=74, cec=PASS
+
+Processing: arithmetic/bar
+  Standard: nodes=512, lev=4, cec=PASS
+  -H 0: nodes=628, lev=4, cec=PASS
+  -H 1: nodes=628, lev=4, cec=PASS
+
+Processing: arithmetic/div
+  Standard: nodes=22113, lev=864, cec=PASS
+  -H 0: nodes=22766, lev=2052, cec=PASS
+  -H 1: nodes=22766, lev=2052, cec=PASS
+
+Processing: arithmetic/hyp
+  Standard: nodes=44508, lev=4194, cec=PASS
+  -H 0: nodes=47722, lev=8449, cec=PASS
+  -H 1: nodes=47722, lev=8449, cec=PASS
+
+Processing: arithmetic/log2
+  Standard: nodes=8092, lev=72, cec=PASS
+  -H 0: nodes=7981, lev=132, cec=PASS
+  -H 1: nodes=7981, lev=132, cec=PASS
+
+Processing: arithmetic/max
+  Standard: nodes=769, lev=44, cec=PASS
+  -H 0: nodes=740, lev=90, cec=PASS
+  -H 1: nodes=740, lev=90, cec=PASS
+
+Processing: arithmetic/multiplier
+  Standard: nodes=5927, lev=53, cec=PASS
+  -H 0: nodes=5775, lev=89, cec=PASS
+  -H 1: nodes=5775, lev=89, cec=PASS
+
+Processing: arithmetic/sin
+  Standard: nodes=1464, lev=36, cec=PASS
+  -H 0: nodes=1445, lev=63, cec=PASS
+  -H 1: nodes=1445, lev=63, cec=PASS
+
+Processing: arithmetic/sqrt
+  Standard: nodes=5711, lev=1033, cec=PASS
+  -H 0: nodes=8051, lev=3813, cec=PASS
+  -H 1: nodes=8051, lev=3813, cec=PASS
+
+Processing: arithmetic/square
+  Standard: nodes=3998, lev=50, cec=PASS
+  -H 0: nodes=3916, lev=108, cec=PASS
+  -H 1: nodes=3916, lev=108, cec=PASS
+
+Processing: arithmetic/adder
+  Standard: nodes=254, lev=51, cec=PASS
+  -H 0: nodes=202, lev=74, cec=PASS
+  -H 1: nodes=202, lev=74, cec=PASS
+
+Processing: arithmetic/bar
+  Standard: nodes=512, lev=4, cec=PASS
+  -H 0: nodes=628, lev=4, cec=PASS
+  -H 1: nodes=628, lev=4, cec=PASS
+
+Processing: arithmetic/div
+  Standard: nodes=22113, lev=864, cec=PASS
+  -H 0: nodes=22766, lev=2052, cec=PASS
+  -H 1: nodes=22766, lev=2052, cec=PASS
+
+Processing: arithmetic/hyp
+  Standard: nodes=44508, lev=4194, cec=PASS
+  -H 0: nodes=47722, lev=8449, cec=PASS
+  -H 1: nodes=47722, lev=8449, cec=PASS
+
+Processing: arithmetic/log2
+  Standard: nodes=8092, lev=72, cec=PASS
+  -H 0: nodes=7981, lev=132, cec=PASS
+  -H 1: nodes=7981, lev=132, cec=PASS
+
+Processing: arithmetic/max
+  Standard: nodes=769, lev=44, cec=PASS
+  -H 0: nodes=740, lev=90, cec=PASS
+  -H 1: nodes=740, lev=90, cec=PASS
+
+Processing: arithmetic/multiplier
+  Standard: nodes=5927, lev=53, cec=PASS
+  -H 0: nodes=5775, lev=89, cec=PASS
+  -H 1: nodes=5775, lev=89, cec=PASS
+
+Processing: arithmetic/sin
+  Standard: nodes=1464, lev=36, cec=PASS
+  -H 0: nodes=1445, lev=63, cec=PASS
+  -H 1: nodes=1445, lev=63, cec=PASS
+
+Processing: arithmetic/sqrt
+  Standard: nodes=5711, lev=1033, cec=PASS
+  -H 0: nodes=8051, lev=3813, cec=PASS
+  -H 1: nodes=8051, lev=3813, cec=PASS
+
+Processing: arithmetic/square
+  Standard: nodes=3998, lev=50, cec=PASS
+  -H 0: nodes=3916, lev=108, cec=PASS
+  -H 1: nodes=3916, lev=108, cec=PASS
+
+Processing: random_control/arbiter
+  Standard: nodes=2722, lev=18, cec=PASS
+  -H 0: nodes=2615, lev=20, cec=PASS
+  -H 1: nodes=2615, lev=20, cec=PASS
+
+Processing: random_control/cavlc
+  Standard: nodes=116, lev=4, cec=PASS
+  -H 0: nodes=118, lev=5, cec=PASS
+  -H 1: nodes=118, lev=5, cec=PASS
+
+Processing: random_control/ctrl
+  Standard: nodes=29, lev=2, cec=PASS
+  -H 0: nodes=30, lev=2, cec=PASS
+  -H 1: nodes=30, lev=2, cec=PASS
+
+Processing: random_control/dec
+  Standard: nodes=287, lev=2, cec=PASS
+  -H 0: nodes=276, lev=2, cec=PASS
+  -H 1: nodes=276, lev=2, cec=PASS
+
+Processing: random_control/i2c
+  Standard: nodes=353, lev=4, cec=PASS
+  -H 0: nodes=347, lev=5, cec=PASS
+  -H 1: nodes=347, lev=5, cec=PASS
+
+Processing: random_control/int2float
+  Standard: nodes=51, lev=3, cec=PASS
+  -H 0: nodes=49, lev=5, cec=PASS
+  -H 1: nodes=49, lev=5, cec=PASS
+
+Processing: random_control/mem_ctrl
+  Standard: nodes=12084, lev=25, cec=PASS
+  -H 0: nodes=12027, lev=45, cec=PASS
+  -H 1: nodes=12027, lev=45, cec=PASS
+
+Processing: random_control/priority
+  Standard: nodes=210, lev=31, cec=PASS
+  -H 0: nodes=251, lev=34, cec=PASS
+  -H 1: nodes=251, lev=34, cec=PASS
+
+Processing: random_control/router
+  Standard: nodes=89, lev=7, cec=PASS
+  -H 0: nodes=74, lev=11, cec=PASS
+  -H 1: nodes=74, lev=11, cec=PASS
+
+Processing: random_control/voter
+  Standard: nodes=2695, lev=16, cec=PASS
+  -H 0: nodes=2372, lev=26, cec=PASS
+  -H 1: nodes=2372, lev=26, cec=PASS
+
+Processing: random_control/arbiter
+  Standard: nodes=2722, lev=18, cec=PASS
+  -H 0: nodes=2615, lev=20, cec=PASS
+  -H 1: nodes=2615, lev=20, cec=PASS
+
+Processing: random_control/cavlc
+  Standard: nodes=116, lev=4, cec=PASS
+  -H 0: nodes=118, lev=5, cec=PASS
+  -H 1: nodes=118, lev=5, cec=PASS
+
+Processing: random_control/ctrl
+  Standard: nodes=29, lev=2, cec=PASS
+  -H 0: nodes=30, lev=2, cec=PASS
+  -H 1: nodes=30, lev=2, cec=PASS
+
+Processing: random_control/dec
+  Standard: nodes=287, lev=2, cec=PASS
+  -H 0: nodes=276, lev=2, cec=PASS
+  -H 1: nodes=276, lev=2, cec=PASS
+
+Processing: random_control/i2c
+  Standard: nodes=353, lev=4, cec=PASS
+  -H 0: nodes=347, lev=5, cec=PASS
+  -H 1: nodes=347, lev=5, cec=PASS
+
+Processing: random_control/int2float
+  Standard: nodes=51, lev=3, cec=PASS
+  -H 0: nodes=49, lev=5, cec=PASS
+  -H 1: nodes=49, lev=5, cec=PASS
+
+Processing: random_control/mem_ctrl
+  Standard: nodes=12084, lev=25, cec=PASS
+  -H 0: nodes=12027, lev=45, cec=PASS
+  -H 1: nodes=12027, lev=45, cec=PASS
+
+Processing: random_control/priority
+  Standard: nodes=210, lev=31, cec=PASS
+  -H 0: nodes=251, lev=34, cec=PASS
+  -H 1: nodes=251, lev=34, cec=PASS
+
+Processing: random_control/router
+  Standard: nodes=89, lev=7, cec=PASS
+  -H 0: nodes=74, lev=11, cec=PASS
+  -H 1: nodes=74, lev=11, cec=PASS
+
+Processing: random_control/voter
+  Standard: nodes=2695, lev=16, cec=PASS
+  -H 0: nodes=2372, lev=26, cec=PASS
+  -H 1: nodes=2372, lev=26, cec=PASS
+
+
+================================================================
+FINAL SUMMARY
+================================================================
+
+Total benchmarks tested: 40
+
+Results for -H 0 (Hypergraph without critical path):
+  Improved (fewer nodes): 0 (0%)
+  Worse (more nodes):     0 (0%)
+
+Results for -H 1 (Hypergraph with critical path):
+  Improved (fewer nodes): 0 (0%)
+  Worse (more nodes):     0 (0%)
+
+✓ All mappings are functionally equivalent to original
+
