@@ -484,7 +484,7 @@ int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPa
     printf( "Partition analysis completed:\n" );
     
     // Count PI nodes in each partition for debugging
-    int nPIsInPartition[2] = {0, 0};
+    int * nPIsInPartition = ABC_CALLOC( int, nPartitions );
     Abc_NtkForEachPi( pAig, pObj, i )
     {
         int objId = Abc_ObjId( pObj );
@@ -523,6 +523,7 @@ int Aig_ApplyPartitionResult( void * pNtk, Aig_Hyper_t * pHyper, Vec_Int_t * vPa
     Vec_VecFree( vPartInputs );
     Vec_VecFree( vPartOutputs );
     Vec_IntFree( vPartSize );
+    ABC_FREE( nPIsInPartition );
     
     printf( "Partition result application completed.\n" );
     return 1;

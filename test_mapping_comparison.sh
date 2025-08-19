@@ -39,10 +39,10 @@ run_mapping() {
     # Run ABC command
     if [ -z "$mapping_options" ]; then
         # Standard mapping
-        $ABC_EXEC -c "read $benchmark_file; strash; balance; if -K $K_VALUE; ps; cec" > "$temp_output" 2>&1
+        $ABC_EXEC -c "read $benchmark_file; strash; balance; resyn; resyn2; if -K $K_VALUE; ps; cec" > "$temp_output" 2>&1
     else
         # Hypergraph partitioning
-        $ABC_EXEC -c "read $benchmark_file; strash; balance; if -K $K_VALUE $mapping_options; ps; cec" > "$temp_output" 2>&1
+        $ABC_EXEC -c "read $benchmark_file; strash; balance; resyn; resyn2;  if -K $K_VALUE $mapping_options; ps; cec" > "$temp_output" 2>&1
     fi
     
     # Read the output

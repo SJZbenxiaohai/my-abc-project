@@ -64,3 +64,8 @@ tags
 /cmake
 /cscope
 abc.history
+
+#忽略if_command_H_parameter_analysis.md文件
+if_command_H_parameter_analysis.md
+
+
